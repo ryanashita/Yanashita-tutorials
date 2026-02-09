@@ -12,13 +12,14 @@ intermediate files used in NVCC's full compilation process. The ```add.sm_75.cub
 ```
 objdump -s -j nv_fatbin add.o
 ```
-3. View the hexadecimal representation of the ```add.fatbin``` contents with this command:
+2. View the hexadecimal representation of the ```add.fatbin``` contents with this command:
 ```
 hexdump -C add.fatbin
 ```
-5. Comparing the outputs from steps (1) and (2), it is clear that they are identical, meaning the fat binary portion in the final object file is unchanged from the ```.fatbin``` file created intermediately by the compiler. This is because the fat binary contains only information and data relevant to the GPU computation, nothing executed by the CPU.
+Comparing the outputs from steps (1) and (2), it is clear that they are identical, meaning the fat binary portion in the final object file is unchanged from the ```.fatbin``` file created intermediately by the compiler. This is because the fat binary contains only information and data relevant to the GPU computation, nothing executed by the CPU.
 This means everything we need to modify the GPU's computation / create custom GPU sections are contained in the fatbin. It's type is also PROGBITs (more on this later). 
-6. Either open the existing ```add.sm_75.cubin``` file with:
+
+3. Either open the existing ```add.sm_75.cubin``` file with:
 ```
 nvdisasm add.sm_75.cubin
 ```
@@ -34,28 +35,29 @@ shows where the SASS instructions for the ```add``` kernel reside in the ```.cub
 ```
 address = (offset of .text section) + (address of FADD within the .text section)
 ```
-7. Find a ```NOP``` instruction inside the ```.cubin``` file and save its hexadecimal sequence somewhere. We will print this to the ```.cubin``` file and overwrite the ```FADD``` instruction. To do this, run the command:
+4. Find a ```NOP``` instruction inside the ```.cubin``` file and save its hexadecimal sequence somewhere. We will print this to the ```.cubin``` file and overwrite the ```FADD``` instruction. To do this, run the command:
 ```
 xxd -g 8 -l 8 -s 0x7c0 add.sm_75.cubin
 ```
 The hexademical value ```0x7c0``` is the address I calculated of the ```NOP``` instruction I found. Save the hexadecimal value that is outputted. For example, the ```NOP``` instruction I found and will use is ```18 79 00 00 00 00 00 00```.
 
 ## Modifying the ```.cubin``` file by overwriting ```FADD``` instruction with a ```NOP``` instruction
-8. Run the command:
+5. Run the command:
 ```
 printf 'HEXADECIMAL INSTRUCTION SEQUENCE HERE' | dd of=add.sm_75.cubin bs=1 seek=$((0x760))
 ```
 where ```0x760``` is the address of the ```FADD``` instruction I want to overwrite with a ```NOP```. 
-9. If you want to check that the instruction was indeed overwritten, run command:
+
+6. If you want to check that the instruction was indeed overwritten, run command:
 ```
 nvdisasm --print-line-info add.sm_75.cubin
 ```
-10. Rebuild the ```.fatbin``` file with the ```.cubin``` we just modified using the command:
+7. Rebuild the ```.fatbin``` file with the ```.cubin``` we just modified using the command:
 ```
 nvcc -cubin add.sm_75.cubin -arch=sm_75 -o patched.fatbin // renamed the fatbin to decrease confusion.
 ```
 
 ## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC!
-11. //TODO
+8. //TODO
 
 
