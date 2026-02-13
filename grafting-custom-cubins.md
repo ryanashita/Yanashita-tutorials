@@ -64,7 +64,7 @@ If you get errors running this command, it means that the bytes used to overwrit
 $ nvcc --fatbin mult.sm_75.cubin -arch=sm_75 -o patched.fatbin // renamed the fatbin to decrease confusion.
 ```
 
-## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC!
-8. 
+## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC
+8. Now that we have a modified ```.fatbin``` file, we can execute the kernel with arguments we give it in a C++ script, not CUDA! 
 
 
