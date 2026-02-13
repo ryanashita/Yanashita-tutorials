@@ -44,9 +44,11 @@ The hexademical value ```0x7c0``` is the address I calculated of the ```NOP``` i
 ## Modifying the ```.cubin``` file by overwriting ```FADD``` instruction with a ```NOP``` instruction
 5. Run the command:
 ```
-printf 'HEXADECIMAL INSTRUCTION SEQUENCE HERE' | dd of=add.sm_75.cubin bs=1 seek=$((0x760))
+printf 'HEXADECIMAL INSTRUCTION SEQUENCE HERE' | dd of=add.sm_75.cubin bs=1 seek=$((0x760)) conv=notrunc
 ```
-where ```0x760``` is the address of the ```FADD``` instruction I want to overwrite with a ```NOP```. 
+where ```0x760``` is the address of the ```FADD``` instruction I want to overwrite with a ```NOP```. Make sure that the instruction sequence
+is in the format '\xHH\xHH\xHH', where 'HH' is a byte. This is because we are using the hexidecimal representation of the sequence of bytes that
+make up the instruction we want to use.
 
 6. If you want to check that the instruction was indeed overwritten, run command:
 ```
