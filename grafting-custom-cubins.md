@@ -65,6 +65,11 @@ $ nvcc --fatbin mult.sm_75.cubin -arch=sm_75 -o patched.fatbin // renamed the fa
 ```
 
 ## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC
-8. Now that we have a modified ```.fatbin``` file, we can execute the kernel with arguments we give it in a C++ script, not CUDA! 
+8. Now that we have a modified ```.fatbin``` file, we can execute the kernel with arguments we give it in a C++ script, not CUDA! We will build the C++ script in a file, I'll call it ```main.cpp```:
+```
+$ vim main.cpp
+```
+All the driver API functions I used are found in the documentation: https://docs.nvidia.com/cuda/cuda-driver-api/modules.html#modules
+
 
 
