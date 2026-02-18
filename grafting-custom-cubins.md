@@ -1,7 +1,7 @@
 # Grafting Custom GPU sections (.cubin files) into a fatbin file
 This is a tutorial on how to graft custom GPU sections into a fatbin file. The motivation behind this tutorial and its contents is part of my independent study in building a GPU compiler. To build the backend of the GPU compiler, specifically for an NVIDIA GPU and driver, I have to learn how to modify ```.cubin``` files and graft/modify them into a ```.fatbin container```. This is to learn how to generate SASS -*Streaming ASSembler is the assembly format for programs running on NVIDIA GPUs*- manually (not from Nvidia tools), produce correct ELF -*Executable and Linkable Format (ELF) is the file format for object files in Linux*- files, and execute these instructions on the NVIDIA driver.
 
-Getting into the more nitty-gritty of the tutorial, by custom GPU sections, I am talking about ```.cubin``` files - *target-specific ELF-formatted CUDA binary files*. These ```.cubin``` files are target-machine-specific, and in this tutorial they are specific to sm_75 (Nvidia GPU architecture with compute capability 7.5). 
+Getting into the more nitty-gritty of the tutorial, by custom GPU sections, I am talking about ```.cubin``` files -*target-specific ELF-formatted CUDA binary files*. These ```.cubin``` files are target-machine-specific, and in this tutorial they are specific to sm_75 (Nvidia GPU architecture with compute capability 7.5). 
 Grafting in this context means taking a existing ```.fatbin``` and ```.cubin```, modifying the ```.cubin```, and rebuilding the fat binary with the modified ```.cubin``` file. *A .fatbin file is a "fat binary" container that holds one or more .cubin files*. The SASS assembly code inside the .cubin can be modified to perform a computation that differs from the computation of the kernel -*Kernels are special units of code (also called functions) that are designed to run in parallel in a GPU*- that was complied with NVCC, NVIDIA's compiler. 
 
 For this tutorial, I will compile a CUDA file ```add.cu``` with the command ```$ nvcc --keep -arch=sm_75 -c add.cu```. The ```--keep``` command is to keep all 
@@ -51,7 +51,7 @@ The hexademical value ```0x7e0``` is the address I calculated of the ```FMUL``` 
 $ printf 'HEXADECIMAL INSTRUCTION SEQUENCE HERE' | dd of=add.sm_75.cubin bs=1 seek=$((0x760)) conv=notrunc
 ```
 where ```0x760``` is the address of the ```FADD``` instruction I want to overwrite with a ```FMUL```. Make sure that the instruction sequence
-is in the format ```'\xHH\xHH\xHH'```, where ```'HH'``` is a byte. This is because we are using the hexidecimal representation of the sequence of bytes that make up the instruction we want to use.
+is in the format ```'\xHH\xHH\xHH'```, where ```'HH'``` is a byte. This is because we are using the hexidecimal representation of the sequence of bytes that make up the instruction we want to use. ```printf '\xHH...'``` prints raw bytes. ```dd``` -*a low-level unix command to manipulate raw data*- receives the byte stream. The ```bs=1``` option specifies that ```seek``` is measured in bytes and ```dd``` writes byte-by-byte. ```dd``` overwrites the bytes at the offset specified by the ```seek``` option in the file specified by the ```of``` option. Finally, ```conv=notrunc``` keeps the rest of the file intact, which is necessary because we are doing an in-place overwrite.
 
 6. If you want to check that the instruction was indeed overwritten, run command:
 ```
@@ -64,12 +64,39 @@ If you get errors running this command, it means that the bytes used to overwrit
 $ nvcc --fatbin mult.sm_75.cubin -arch=sm_75 -o patched.fatbin // renamed the fatbin to decrease confusion.
 ```
 
-## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC
-8. Now that we have a modified ```.fatbin``` file, we can execute the kernel with arguments we give it in a C++ script, not CUDA! We will build the C++ script in a file, I'll call it ```main.cpp```:
+## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC and Nvidia Runtime API
+8. Now that we have a modified ```.fatbin``` file, we can execute the kernel with arguments we give it in a C++ script. We will not use NVCC and the Nvidia Runtime API to execute this! We will build the C++ script in a file, I'll call it ```main.cpp```:
 ```
 $ vim main.cpp
 ```
-All the driver API functions I used are found in the documentation: https://docs.nvidia.com/cuda/cuda-driver-api/modules.html#modules
+All the driver API functions I used are found in the documentation: https://docs.nvidia.com/cuda/cuda-driver-api/modules.html#modules. 
+Although the documentation is quite scant, reading the name and simple definitions of functions is enough to understand what to do (read: RTFM). 
 
+Specifically, the functions I use are ```cuInit```, ```cuDeviceGet```,```cuCtxCreate```, ```cuModuleLoadFatBinary```, ```cuModuleGetFunction```, ```cuFuncLoad```, ```cuFuncIsLoaded```, ```cuMemAlloc```, ```cuMemcpyHtoD```, ```cuLaunchKernel```, and ```cuMemFree```. Each function returns a ```CUresult```. This is useful to test if a function did what the developer wanted it to do. Use a simple conditional to check: 
+```
+if (res != 0) {
+  std::cerr << "failed in some way: " << res << std::endl;
+  return 1;
+}
+```
 
+Something that this tutorial does different from other resources on the internet is the use of ```cuModuleLoadFatBinary``` and the explicit use of a modified fatbin as the module. We can load the module inside the fat binary object into the current context. The code to do this is in the script. 
 
+Take a look at the script file, ```main.cpp```, for more details and execution order of functions.
+
+9. Finally, we can reap the benefits of our hard work. Run this command to compile the script:
+```
+$ clang++ main.cpp -I /usr/local/cuda/include -L /usr/local/cuda/lib64 -lcuda -o main
+```
+This command compiles the script using ```clang++```, -*a high-performance compiler driver for C++, based on LLVM*-. The ```-I /usr/local/cuda/include``` option adds a directory to the search path for include files, telling the compiler that when it sees ```#include <cuda.h>```, look in ```/usr/local/cuda/include```. Similarly, the ```-L /usr/local/cuda/lib64``` option adds a directory to the library search path at link time. That is where ```libcuda``` typically resides. Lastly, ```-lcuda``` links against the CUDA driver library.
+
+Then, execute the executable: 
+```
+$ ./main
+```
+
+The outputs with ```std::cout``` may be different depending on your specific output strings, but the kernel that originally computed addition should now be computing multiplication! For me, the original kernel added 2.5 + 4.5 = 7.0. After the modification, the kernel computes 2.5 * 4.5 = 11.25. 
+
+## Conclusion
+
+This tutorial demonstrated how to modify a CUDA binary, package it into a fat binary, and execute the patched kernel using the CUDA Driver API. In our script, we've effectively replicated what ```libcudart``` -*The CUDA Runtime API*- does under the hood.
