@@ -1,10 +1,10 @@
 # Grafting Custom GPU sections (.cubin files) into a fatbin file & Executing fatbins with the Nvidia Driver API
-This is a tutorial on how to graft custom GPU sections into a fatbin file, and execute them directly with the Nvidia Driver API (not using Nvidia's Runtime API). The motivation behind this tutorial and its contents is part of my independent study in building a GPU compiler. To build the backend of the GPU compiler, specifically for an NVIDIA GPU and driver, I have to learn how to modify ```.cubin``` files and graft/modify them into a ```.fatbin container```. This is to learn how to generate SASS -*Streaming ASSembler is the assembly format for programs running on NVIDIA GPUs*- manually (not from Nvidia tools), produce correct ELF -*Executable and Linkable Format (ELF) is the file format for object files in Linux*- files, and execute these instructions on the NVIDIA driver. Since I'm ultimately building a compiler to "replace" NVCC, I have to learn to get around NVCC and the Runtime API.
+This is a tutorial on how to graft custom GPU sections into a fatbin file, and execute them directly with the Nvidia Driver API (not using Nvidia's Runtime API). The motivation behind this tutorial and its contents is part of my independent study in building a GPU compiler. To build the backend of the GPU compiler, specifically for an NVIDIA GPU and driver, I have to learn how to modify ```.cubin``` files and graft/modify them into a ```.fatbin``` container. This is to learn how to generate SASS -*Streaming ASSembler is the assembly format for programs running on NVIDIA GPUs*- manually (not from Nvidia tools), produce correct ELF -*Executable and Linkable Format (ELF) is the file format for object files in Linux*- files, and execute these instructions on the NVIDIA driver. Since I'm ultimately building a compiler to "replace" NVCC, I have to learn to get around NVCC and the Runtime API.
 
 Getting into the more nitty-gritty of the tutorial, by custom GPU sections, I am talking about ```.cubin``` files -*target-specific ELF-formatted CUDA binary files*. These ```.cubin``` files are target-machine-specific, and in this tutorial they are specific to sm_75 (Nvidia GPU architecture with compute capability 7.5). 
 Grafting in this context means taking a existing ```.fatbin``` and ```.cubin```, modifying the ```.cubin```, and rebuilding the fat binary with the modified ```.cubin``` file. *A .fatbin file is a "fat binary" container that holds one or more .cubin files*. The SASS assembly code inside the .cubin can be modified to perform a computation that differs from the computation of the kernel -*Kernels are special units of code (also called functions) that are designed to run in parallel in a GPU*- that was complied with NVCC, NVIDIA's compiler. 
 
-For this tutorial, I will compile a CUDA file ```add.cu``` with the command ```$ nvcc --keep -arch=sm_75 -c add.cu```. The ```--keep``` command is to keep all 
+For this tutorial, I will compile a CUDA file ```add.cu``` with the command ```$ nvcc --keep -arch=sm_75 -c add.cu```. The ```--keep``` option is to keep all 
 intermediate files used in NVCC's full compilation process. The ```add.sm_75.cubin```, ```add.fatbin```, and ```add.o``` files will be particularly useful. 
 
 ## Understanding ```.cubin```, ```.fatbin```, and SASS
@@ -64,7 +64,7 @@ If you get errors running this command, it means that the bytes used to overwrit
 $ nvcc --fatbin mult.sm_75.cubin -arch=sm_75 -o patched.fatbin // renamed the fatbin to decrease confusion.
 ```
 
-## Running the modified .fatbin file using the Nvidia Driver API and not using NVCC and Nvidia Runtime API
+## Executing the modified .fatbin file using the Nvidia Driver API and not using NVCC and Nvidia Runtime API
 8. Now that we have a modified ```.fatbin``` file, we can execute the kernel with arguments we give it in a C++ script. We will not use NVCC and the Nvidia Runtime API to execute this! We will build the C++ script in a file, I'll call it ```main.cpp```:
 ```
 $ vim main.cpp
