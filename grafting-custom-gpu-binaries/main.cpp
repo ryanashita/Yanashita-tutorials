@@ -85,7 +85,7 @@ int main() {
 	std::cout << "successfully launched kernel" << std::endl; 
 	std::cout << "Originally added the two values 2.5 + 4.5 = 7.0f. Patched fatbin multiplies the two values instead of adding, expected value is 2.5 * 4.5 = 11.25. Computed value: " << std::to_string(c) << std::endl;
 	
-	cuMemFree(d_a); 
+	cuMemFree(d_a); // free memory that was allocated earlier 
 	cuMemFree(d_b); 
 	cuMemFree(d_c); 
 	
