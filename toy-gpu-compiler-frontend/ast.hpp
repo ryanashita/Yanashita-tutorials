@@ -4,9 +4,6 @@
 #include <iostream>
 #include <cstdio>
 #include <vector>
-#include <string>
-#include <memory>
-#include <array>
 
 class ASTNode {
 public: 
