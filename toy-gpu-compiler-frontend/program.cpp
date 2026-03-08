@@ -7,7 +7,7 @@
 
 namespace pegtl = tao::pegtl; 
 
-// g++ parser.cpp eval.cpp -std=c++17 -O2 -o program
+// g++ parser.cpp program.cpp -std=c++17 -O2 -o program
 
 /*
     (-1+5)+(2+(+3))
@@ -24,7 +24,7 @@ int main() {
     //iterate through the nodes
     // create a arith_expr and then populate the member values
     // run eval
-    std::string input = "1+1"; 
+    std::string input = "1+1+1"; 
     auto root = parse_pegtl(input); 
     if (!root) {
 		std::cout << "parse failed" << "\n"; 
