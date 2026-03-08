@@ -1,3 +1,6 @@
+#ifndef AST_HPP
+#define AST_HPP
+
 #include <iostream>
 #include <cstdio>
 #include <vector>
@@ -21,10 +24,23 @@ public:
     std::unique_ptr<Expression> right; 
     char op; 
 
-    // ArithmeticExpression(
-    //     std::unique_ptr<Expression> l, 
-    //     std::unique_ptr<Expression> r,
-    //     char o) : left{l}
+    ArithmeticExpression(
+        std::unique_ptr<Expression> l, 
+        std::unique_ptr<Expression> r,
+        char o) : left{std::move(l)}, right{std::move(r)}, op{o} {}; 
+
+    int eval() const override {
+        int lval = left->eval(); 
+        int rval = right->eval(); 
+        
+        switch(op) {
+            case '+': return lval + rval; 
+            case '-': return lval - rval; 
+            case '*': return lval * rval; 
+            case '/': return lval / rval; 
+            default: throw std::runtime_error("Unknown operator"); 
+        }
+    }
 }; 
 
 class ValueList : public Expression {
@@ -63,9 +79,4 @@ public:
     }
 };
 
-int main() {
-    return 0; 
-}
-
-
-
+#endif
