@@ -33,4 +33,9 @@ class ASTBuilder {
 
 #endif
 
-//TODO: rework the arithmetic
+/*
+    TODO: rework the arithmetic
+    right now my AST nodes are left right op, but my 
+    parse expression grammar is built so a arith_expr is 
+    multiple arithmetic operations together. Can't have that happening
+*/
