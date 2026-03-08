@@ -5,6 +5,8 @@
 #include <tao/pegtl/contrib/parse_tree.hpp>
 #include <type_traits>
 
+// g++ parser.cpp -std=c++17 -O2 -o parser
+
 namespace pegtl = tao::pegtl; //namespace alias, just a nickname
 
 namespace grammar {
@@ -141,7 +143,7 @@ using selector =
 >;
 
 int main() {
-	std::string input = "x = 1+1+1-1"; 
+	std::string input = "1+1"; 
 	// (-1+5)+(2+(+3))
 	// [1,2,3,4,5]
 	// (-1  + 5) +  (2+ +3  )
