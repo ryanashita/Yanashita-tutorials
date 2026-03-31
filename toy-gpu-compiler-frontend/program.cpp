@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include <typeinfo>
 #include "parser.hpp"
 #include "ast.hpp"
 #include <tao/pegtl.hpp>
@@ -20,20 +21,28 @@ namespace pegtl = tao::pegtl;
 */
 
 int main() {
-    //get the nodes
-    //iterate through the nodes
-    // create a arith_expr and then populate the member values
-    // run eval
-    std::string input = "1+1+1"; 
+    std::string input = "54+44+-1"; 
     auto root = parse_pegtl(input); 
+
     if (!root) {
 		std::cout << "parse failed" << "\n"; 
         return 1; 
     }
-
-    std::cout << "Parse successful! Ast\n"; 
-	print_node(root, 0);
-
     
+    std::cout << "Parse successful! Ast:\n"; 
+    if (!root->children.empty()) {
+        auto* program_node = static_cast<my_ast_node*>(root->children[0].get()); 
 
+        /*
+        Tests for root type and children
+            std::cout << "Root type: " << program_node->is_type<grammar::program>() << std::endl; 
+            std::cout << "Root children count: " << program_node->children.size() << std::endl;
+        */
+
+        if (program_node->ast) {
+            std::cout << "  " <<program_node->ast->print_expr() << std::endl;
+        } else {
+            std::cout << "AST grammar::program root node is null" << std::endl; 
+        }
+    }
 }

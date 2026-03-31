@@ -8,6 +8,8 @@
 #include <tao/pegtl/contrib/parse_tree.hpp>
 #include <type_traits>
 
+#include "ast.hpp"
+
 // g++ parser.cpp -std=c++17 -O2 -o parser
 
 namespace pegtl = tao::pegtl; //namespace alias, just a nickname
@@ -37,22 +39,22 @@ namespace grammar {
 			number
 		> {}; 
 	
-	struct identifier : pegtl::identifier {}; 
+	// struct identifier : pegtl::identifier {}; 
 
-	struct variable : identifier {}; 
+	// struct variable : identifier {}; 
 
 	struct arith_op : pegtl::one<'+','-','*','/'> {};
 	
-	struct assign_op 
-		: pegtl::seq<
-			ws,
-			pegtl::one<'='>,
-			ws
-		> {}; 
+	// struct assign_op 
+	// 	: pegtl::seq<
+	// 		ws,
+	// 		pegtl::one<'='>,
+	// 		ws
+	// 	> {}; 
 
 	struct arith_expr 
 		: pegtl::seq<
-			ws,
+			ws, 
 			term,
 			pegtl::star<
 				pegtl::seq<
@@ -65,72 +67,226 @@ namespace grammar {
 			ws
 		> {}; 
 	
-	struct vector 
-	: pegtl::seq<
-		pegtl::one<'['>,
-		ws,
-		pegtl::sor<
-			pegtl::seq<
-				number,
-				pegtl::plus<
-					pegtl::seq<
-						pegtl::one<','>,
-						number
-					>
-				>
-			>,
-			number
-		>,
-		ws,
-		pegtl::one<']'>
-		> {}; 
+	// struct vector 
+	// : pegtl::seq<
+	// 	pegtl::one<'['>,
+	// 	ws,
+	// 	pegtl::sor<
+	// 		pegtl::seq<
+	// 			number,
+	// 			pegtl::plus<
+	// 				pegtl::seq<
+	// 					pegtl::one<','>,
+	// 					number
+	// 				>
+	// 			>
+	// 		>,
+	// 		number
+	// 	>,
+	// 	ws,
+	// 	pegtl::one<']'>
+	// 	> {}; 
 
 	struct expr 
 		: pegtl::sor<
 			number,
-			arith_expr,
-			vector
+			arith_expr
+			// vector
 		> {}; 
 	
-	struct assign_expr
-		: pegtl::seq<
-			variable,
-			assign_op,
-			expr,
-			ws
-		> {}; 
+	// struct assign_expr
+	// 	: pegtl::seq<
+	// 		// variable,
+	// 		// assign_op,
+	// 		expr,
+	// 		ws
+	// 	> {}; 
 
 	struct program 
 		: pegtl::seq<
 			ws,
-			pegtl::star<pegtl::sor<arith_expr,vector,assign_expr>>,
+			pegtl::star<arith_expr>,
 			pegtl::eof
 		> {}; 
 }; 
 
-void print_node(const std::unique_ptr<pegtl::parse_tree::node>& node, int indent);
+struct my_ast_node : pegtl::parse_tree::node {
+	std::unique_ptr<Expression> ast; // ast holds the Expression nodes (my custom AST representation)
+
+	// default constructors
+	my_ast_node() = default;
+    my_ast_node(const my_ast_node&) = delete;
+    my_ast_node(my_ast_node&&) = delete;
+    my_ast_node& operator=(const my_ast_node&) = delete;
+    my_ast_node& operator=(my_ast_node&&) = delete;
+}; 
 
 template< typename Rule >
-using selector =
+struct selector :
 	pegtl::parse_tree::selector< 
 		Rule, 
 		pegtl::parse_tree::store_content::on<
-			grammar::arith_expr,
-			grammar::expr,
-			grammar::arith_op,
-			grammar::number,
-			grammar::vector,
-			grammar::variable,
-			grammar::assign_expr
-		>,
-		pegtl::parse_tree::fold_one::on<
-			grammar::program,
-			grammar::term,
-			grammar::identifier,
-			grammar::assign_op
+			grammar::arith_op
+			/*
+			Don't need to include these rules in the base selector; they have custom selectors (template specializations)
+				grammar::arith_expr,
+				grammar::expr,
+				grammar::number,
+				grammar::term,
+				grammar::program
+			*/
 		>
->;
+> {}; 
 
-std::unique_ptr<pegtl::parse_tree::node> parse_pegtl(std::string input);
+template<>
+struct selector< grammar::number> : std::true_type {
+	template< typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- NUMBER TRANSFORM ---" << std::endl;
+
+		if (!node->has_content()) {
+			std::cout << "has_content: 0" << std::endl;
+			return;
+		} 
+
+		std::string content = node->string();
+        std::cout << "content: '" << content << "'" << std::endl; // cout for debug
+
+		// assigning ast the Integer object with value		
+		int value = std::stoi(node->string()); 
+		node->ast = std::make_unique<Integer>(value); 
+	}
+};
+
+template<>
+struct selector< grammar::term> : std::true_type {
+	template< typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- TERM TRANSFORM ---" << std::endl;
+
+		if (node->children.empty()) {
+			std::cout << "term children count: 0" << std::endl;
+			return;
+		} 
+
+		std::cout << "term children count: " << node->children.size() << std::endl;
+		for (size_t i = 0; i < node->children.size(); ++i) {
+            auto* child = static_cast<my_ast_node*>(node->children[i].get());
+            std::cout << "  child[" << i << "] type: " << child->type;
+            if (child->has_content()) {
+                std::cout << " content: '" << child->string() << "'";
+            }
+            std::cout << " has_ast: " << (child->ast ? "YES" : "NO") << std::endl;
+        }
+
+		// parsing number
+		if (node->children.size() == 1) {
+			auto* child = static_cast<my_ast_node*>(node->children[0].get()); 
+			assert(child->ast && "Integer is null in term"); 
+			node->ast = std::move(child->ast); 
+		
+		// parsing arith_expr
+		} else if (node->children.size() == 3) {
+			auto* arith_child = static_cast<my_ast_node*>(node->children[1].get()); // need the arith_expr in index 1, ignore parens
+			assert(arith_child->ast && "arithexpr is null in term"); 
+			node->ast = std::move(arith_child->ast); 
+		} else {
+			throw std::runtime_error("unexpected children count"); 
+		}
+		assert(node->ast && "term failed to produce AST");
+	}
+};
+
+template<>
+struct selector< grammar::arith_expr > : std::true_type {
+	template< typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- ARITH_EXPR TRANSFORM ---" << std::endl;
+
+		if (node->children.empty()) {
+			std::cout << "arith children count: 0" << std::endl;
+			return;
+		} 
+		
+		std::cout << "arith children count: " << node->children.size() << std::endl;
+		for (size_t i = 0; i < node->children.size(); ++i) {
+            auto* child = static_cast<my_ast_node*>(node->children[i].get());
+            std::cout << "  child[" << i << "] type: " << child->type;
+            if (child->has_content()) {
+                std::cout << " content: '" << child->string() << "'";
+            }
+            std::cout << " has_ast: " << (child->ast ? "YES" : "NO") << std::endl;
+        }
+
+		auto* left_node = static_cast<my_ast_node*>(node->children[0].get()); 
+		assert(left_node->ast && "Left AST is null in arith_expr"); 
+
+		/*
+		Loop through arith_expr children
+			Ex: 1+1+1 -> ((1 + 1) + 1)
+			left already owns the first number. iterate through next two to create next arithmetic triple
+
+		*/
+		std::unique_ptr<Expression> left = std::move(left_node->ast);
+		for (size_t i = 1; i < node->children.size(); i += 2) {
+			char op = node->children[i]->string()[0]; // grab the first char in the string, which is always op, char length 1 
+
+			// grab right node, which is next child hence i+1
+			auto* right_node = static_cast<my_ast_node*>(node->children[i+1].get()); 
+			assert(right_node->ast && "Right AST is null in arith_expr"); 
+
+			// std::unique_ptr<Expression> right = std::move(right_node->ast);
+			// auto right = std::move(static_cast<my_ast_node*>(node->children[i+1].get())->ast);
+			// if (!right) return; 
+			left = std::make_unique<ArithmeticExpression>(
+				std::move(left), std::move(right_node->ast), op
+			); 
+		}
+		node->ast = std::move(left); 
+		// std::cout << typeid(node->ast).name(); // how to check type, save for future use
+		assert(node->ast && "arith_expr failed to produce AST");
+	}
+};
+
+template<>
+struct selector< grammar::program > : std::true_type {
+	template<typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- PROGRAM TRANSFORM ---" << std::endl;
+
+		if (node->children.empty()) {
+			std::cout << "program children count: 0" << std::endl;
+			return;
+		}
+		std::cout << "program (elist) children count: " << node->children.size() << std::endl;
+		for (size_t i = 0; i < node->children.size(); ++i) {
+            auto* child = static_cast<my_ast_node*>(node->children[i].get());
+            std::cout << "  child[" << i << "] type: " << child->type;
+            if (child->has_content()) {
+                std::cout << " content: '" << child->string() << "'";
+            }
+            std::cout << " has_ast: " << (child->ast ? "YES" : "NO") << std::endl;
+        }
+
+		// initialize ExpressionList object + unique_ptr
+		auto elist = std::make_unique<ExpressionList>(); 
+		for (auto& child : node->children) {
+			// c++ ownership semantics
+			auto* my_ast_node_ch = static_cast<my_ast_node*>(child.get()); 
+			if (!my_ast_node_ch->ast) {
+				std::cout << "skipping null child ast in program" << std::endl; 
+				continue; 
+			}
+			elist->add(std::move(my_ast_node_ch->ast)); // add from child node to elist
+		}
+		std::cout << "ExpressionList size: " << elist->expression_list.size() << std::endl;
+		node->ast = std::move(elist); 
+		assert(node->ast && "program failed to produce AST"); 
+	}
+};
+
+void print_node(const std::unique_ptr<pegtl::parse_tree::node>& node, int indent);
+
+std::unique_ptr<my_ast_node> parse_pegtl(std::string input);
 
 #endif

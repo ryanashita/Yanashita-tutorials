@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include <iostream>
 
+// TODO: change into a prettyprint that prints the Expression print() output in a nicer format
 void print_node(const std::unique_ptr<pegtl::parse_tree::node>& node, int indent = 0)
 {
 	if (!node) return; 
@@ -17,11 +18,16 @@ void print_node(const std::unique_ptr<pegtl::parse_tree::node>& node, int indent
     }
 };
 
-std::unique_ptr<pegtl::parse_tree::node> parse_pegtl(std::string input) {
-	pegtl::memory_input in(input, "input"); 
-	auto root = pegtl::parse_tree::parse< grammar::program, selector >( in );
-	return root ? std::move(root) : nullptr;  
-}
+std::unique_ptr<my_ast_node> parse_pegtl(std::string input) {
+	std::cout << "=== START PARSE PEGTL ===" << std::endl; 
 
-//function that comes with parser that allows you to attached custom constructor code
-//attach parser machine
+	pegtl::memory_input in(input, "input"); 
+	auto root = pegtl::parse_tree::parse< grammar::program,my_ast_node,selector>( in );
+
+	std::cout << "\n=== END PARSE PEGTL ===\n" << std::endl; 
+	return root ? std::move(root) : nullptr;
+	/*
+		if (root) return std::move(root)
+		else return nullptr 
+	*/
+}

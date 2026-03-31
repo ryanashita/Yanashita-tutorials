@@ -12,8 +12,36 @@ public:
 
 class Expression : public ASTNode {
 public: 
+    virtual ~Expression() = default; 
+
     virtual std::unique_ptr<Expression> eval() const = 0; // no impl, all derived classes override and impl
+
+    virtual std::string print_expr() const = 0; 
+
+    virtual bool isInteger() const {
+        return false; 
+    } 
 }; 
+
+class Integer : public Expression {
+public: 
+    int value; 
+
+    Integer(int v) : value{v} {}; 
+
+    std::unique_ptr<Expression> eval() const override {
+        return std::make_unique<Integer>(value); 
+    }
+
+    bool isInteger() const override {
+        return true; 
+    }
+
+    std::string print_expr() const override {
+        // std::cout << "print int" << std::endl; 
+        return std::string("Integer(") + std::to_string(value) + ")"; 
+    }
+};
 
 class ArithmeticExpression : public Expression {
 public: 
@@ -52,10 +80,39 @@ public:
             throw std::runtime_error("Cannot add nodes that are not Integer"); 
         }
     }
+
+    std::string print_expr() const override {
+        // std::cout << "print arith" << std::endl; 
+        return std::string("Arithmetic(") + left->print_expr() + ", + , " + right->print_expr() + ")"; 
+    }
 }; 
 
-class ValueList : public Expression {
+class ExpressionList : public Expression {
+public: 
+    std::vector<std::unique_ptr<Expression>> expression_list; 
+    
+    // default constructor, add to the vector with the add method
+    ExpressionList() = default; 
 
+    std::unique_ptr<Expression> eval() const override {
+        return nullptr;
+    }
+
+    void add(std::unique_ptr<Expression> expr) {
+        expression_list.push_back(std::move(expr)); 
+    }
+
+    std::string print_expr() const override {
+        // std::cout << "print exprlist" << std::endl; 
+        std::string result = std::string("ExprList["); 
+        for (int i = 0; i < expression_list.size(); ++i) {
+            result += expression_list.at(i)->print_expr(); 
+            if (i + 1 < expression_list.size()) {
+                result += ", "; // add comma between expressions
+            }
+        }
+        return result += "]"; 
+    }
 };
 
 template<typename T>
@@ -78,16 +135,5 @@ public:
     std::unique_ptr<Expression> expr; 
     char right_parens; 
 }; 
-
-class Integer : public Expression {
-public: 
-    int value; 
-
-    Integer(int v) : value{v} {}; 
-
-    // std::unique_ptr<Expression> eval() const override {
-    //     return Integer(); 
-    // }
-};
 
 #endif
