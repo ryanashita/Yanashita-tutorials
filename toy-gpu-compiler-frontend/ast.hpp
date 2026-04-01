@@ -16,7 +16,7 @@ public:
 
     virtual std::unique_ptr<Expression> eval() const = 0; // no impl, all derived classes override and impl
 
-    virtual std::string print_expr() const = 0; 
+    virtual std::string print_expr(int indent = 0) const = 0; 
 
     virtual bool isInteger() const {
         return false; 
@@ -37,9 +37,9 @@ public:
         return true; 
     }
 
-    std::string print_expr() const override {
+    std::string print_expr(int indent = 0) const override {
         // std::cout << "print int" << std::endl; 
-        return std::string("Integer(") + std::to_string(value) + ")"; 
+        return std::string(indent * 2,' ') + "Integer(" + std::to_string(value) + ")"; 
     }
 };
 
@@ -81,9 +81,9 @@ public:
         }
     }
 
-    std::string print_expr() const override {
+    std::string print_expr(int indent = 0) const override {
         // std::cout << "print arith" << std::endl; 
-        return std::string("Arithmetic(") + left->print_expr() + ", + , " + right->print_expr() + ")"; 
+        return std::string(indent * 2,' ') + "Arithmetic(\n" + left->print_expr(indent + 1) + ",\n" + std::string(indent * 2 + 2,' ') + "+,\n" + right->print_expr(indent + 1) + ")"; 
     }
 }; 
 
@@ -95,20 +95,25 @@ public:
     ExpressionList() = default; 
 
     std::unique_ptr<Expression> eval() const override {
-        return nullptr;
+        auto result_list = std::make_unique<ExpressionList>();
+        for (const auto& expr : expression_list) {
+            auto evaluated = expr->eval(); 
+            result_list->add(std::move(evaluated)); 
+        }
+        return result_list; 
     }
 
     void add(std::unique_ptr<Expression> expr) {
         expression_list.push_back(std::move(expr)); 
     }
 
-    std::string print_expr() const override {
+    std::string print_expr(int indent = 0) const override {
         // std::cout << "print exprlist" << std::endl; 
-        std::string result = std::string("ExprList["); 
+        std::string result = std::string(indent * 2,' ') + "ExprList[\n"; 
         for (int i = 0; i < expression_list.size(); ++i) {
-            result += expression_list.at(i)->print_expr(); 
+            result += expression_list.at(i)->print_expr(indent + 1); 
             if (i + 1 < expression_list.size()) {
-                result += ", "; // add comma between expressions
+                result += ","; // add comma between expressions
             }
         }
         return result += "]"; 

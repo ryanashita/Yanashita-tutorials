@@ -21,7 +21,7 @@ namespace pegtl = tao::pegtl;
 */
 
 int main() {
-    std::string input = "54+44+-1"; 
+    std::string input = "44+56+33+37+21+9"; 
     auto root = parse_pegtl(input); 
 
     if (!root) {
@@ -29,7 +29,7 @@ int main() {
         return 1; 
     }
     
-    std::cout << "Parse successful! Ast:\n"; 
+    std::cout << "Parse successful! Original Ast:\n"; 
     if (!root->children.empty()) {
         auto* program_node = static_cast<my_ast_node*>(root->children[0].get()); 
 
@@ -40,7 +40,11 @@ int main() {
         */
 
         if (program_node->ast) {
-            std::cout << "  " <<program_node->ast->print_expr() << std::endl;
+            std::cout << program_node->ast->print_expr(2) << std::endl;
+
+            std::cout << "Evaluated Ast:\n"; 
+            auto eval_result = program_node->ast->eval(); 
+            std::cout << eval_result->print_expr(2) << std::endl; 
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }

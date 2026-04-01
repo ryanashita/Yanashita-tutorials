@@ -285,8 +285,6 @@ struct selector< grammar::program > : std::true_type {
 	}
 };
 
-void print_node(const std::unique_ptr<pegtl::parse_tree::node>& node, int indent);
-
 std::unique_ptr<my_ast_node> parse_pegtl(std::string input);
 
 #endif
