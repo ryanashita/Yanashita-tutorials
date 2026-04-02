@@ -25,11 +25,10 @@ int main() {
     auto root = parse_pegtl(input); 
 
     if (!root) {
-		std::cout << "parse failed" << "\n"; 
+		std::cout << "parse failed, root is nullptr" << "\n"; 
         return 1; 
     }
     
-    std::cout << "Parse successful! Original Ast:\n"; 
     if (!root->children.empty()) {
         auto* program_node = static_cast<my_ast_node*>(root->children[0].get()); 
 
@@ -40,13 +39,22 @@ int main() {
         */
 
         if (program_node->ast) {
+            std::cout << "parse successful! original AST:\n"; 
             std::cout << program_node->ast->print_expr(2) << std::endl;
 
-            std::cout << "Evaluated Ast:\n"; 
+            std::cout << "evaluated AST:\n"; 
             auto eval_result = program_node->ast->eval(); 
-            std::cout << eval_result->print_expr(2) << std::endl; 
+            std::cout << eval_result->print_expr(2) << std::endl;
+
+            std::cout << "env map pairs:\n"; // print out variables and the values they were initialized with
+            for (const auto& [name,expr] : program_node->ast->env) {
+                std::cout << name << " -> " << expr->print_expr() << std::endl;
+            }
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
+    } else {
+        std::cout << "parse failed, root has no children" << "\n"; 
+        return 1; 
     }
 }
