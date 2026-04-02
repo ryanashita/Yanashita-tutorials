@@ -38,19 +38,17 @@ namespace grammar {
 			>,
 			number
 		> {}; 
-	
-	// struct identifier : pegtl::identifier {}; 
 
-	// struct variable : identifier {}; 
+	struct variable : pegtl::identifier {}; 
 
 	struct arith_op : pegtl::one<'+','-','*','/'> {};
 	
-	// struct assign_op 
-	// 	: pegtl::seq<
-	// 		ws,
-	// 		pegtl::one<'='>,
-	// 		ws
-	// 	> {}; 
+	struct assign_op
+		: pegtl::seq<
+			ws,
+			pegtl::one<'='>,
+			ws
+		> {}; 
 
 	struct arith_expr 
 		: pegtl::seq<
@@ -89,23 +87,23 @@ namespace grammar {
 
 	struct expr 
 		: pegtl::sor<
-			number,
-			arith_expr
+			arith_expr,
+			number
 			// vector
 		> {}; 
 	
-	// struct assign_expr
-	// 	: pegtl::seq<
-	// 		// variable,
-	// 		// assign_op,
-	// 		expr,
-	// 		ws
-	// 	> {}; 
+	struct assign_expr 
+		: pegtl::seq<
+			variable,
+			assign_op,
+			expr,
+			ws
+		> {}; 
 
 	struct program 
 		: pegtl::seq<
 			ws,
-			pegtl::star<arith_expr>,
+			pegtl::star<pegtl::sor<assign_expr,arith_expr>>,
 			pegtl::eof
 		> {}; 
 }; 
@@ -126,7 +124,7 @@ struct selector :
 	pegtl::parse_tree::selector< 
 		Rule, 
 		pegtl::parse_tree::store_content::on<
-			grammar::arith_op
+			grammar::arith_op,
 			/*
 			Don't need to include these rules in the base selector; they have custom selectors (template specializations)
 				grammar::arith_expr,
@@ -134,7 +132,10 @@ struct selector :
 				grammar::number,
 				grammar::term,
 				grammar::program
+				grammar::assign_expr
 			*/
+			grammar::variable,
+			grammar::assign_op
 		>
 > {}; 
 
@@ -245,6 +246,43 @@ struct selector< grammar::arith_expr > : std::true_type {
 		node->ast = std::move(left); 
 		// std::cout << typeid(node->ast).name(); // how to check type, save for future use
 		assert(node->ast && "arith_expr failed to produce AST");
+	}
+};
+
+template<>
+struct selector< grammar::assign_expr > : std::true_type {
+	template<typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- ASSIGN_EXPR TRANSFORM ---" << std::endl;
+
+		if (node->children.empty()) {
+			std::cout << "assign children count: 0" << std::endl;
+			return;
+		} 
+
+		// should only have three children: variable, operator, expr
+		std::cout << "assign children count: " << node->children.size() << std::endl;
+		for (size_t i = 0; i < node->children.size(); ++i) {
+            auto* child = static_cast<my_ast_node*>(node->children[i].get());
+            std::cout << "  child[" << i << "] type: " << child->type;
+            if (child->has_content()) {
+                std::cout << " content: '" << child->string() << "'";
+            }
+            std::cout << " has_ast: " << (child->ast ? "YES" : "NO") << std::endl;
+        }
+
+		auto* variable_node = static_cast<my_ast_node*>(node->children[0].get()); 
+		if (!variable_node->has_content()) {
+			throw std::runtime_error("variable AST is null/has no content");
+		}		
+		std::string variable_name = variable_node->string(); 
+
+		auto* content_node = static_cast<my_ast_node*>(node->children[2].get()); 
+		assert(content_node->ast && "content expr AST is null in assign_expr");
+		
+		std::unique_ptr<Expression> content = std::move(content_node->ast);
+		auto assignment = std::make_unique<AssignmentExpression>(variable_name, std::move(content));
+		node->ast = std::move(assignment); 
 	}
 };
 

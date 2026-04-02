@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdio>
 #include <vector>
+#include <unordered_map>
 
 class ASTNode {
 public: 
@@ -12,6 +13,8 @@ public:
 
 class Expression : public ASTNode {
 public: 
+    static inline std::unordered_map<std::string, std::unique_ptr<Expression>> env; // use inline keyword, applied to static members. allows initialization directly in header file
+
     virtual ~Expression() = default; 
 
     virtual std::unique_ptr<Expression> eval() const = 0; // no impl, all derived classes override and impl
@@ -88,6 +91,45 @@ public:
         return std::string(indent * 2,' ') + "Arithmetic(\n" + left->print_expr(indent + 1) + ",\n" + std::string(indent * 2 + 2,' ') + op + ",\n" + right->print_expr(indent + 1) + ")"; 
     }
 }; 
+
+class Variable : public Expression {
+public:
+    std::string varname; 
+
+    Variable(std::string n) : varname{n} {}; 
+
+    std::unique_ptr<Expression> eval() const override {
+        auto expr = Expression::env.find(varname); 
+        if (expr == env.end()) {
+            throw std::runtime_error("undefined variable: " + varname);
+        }
+        return expr->second->eval(); 
+    }
+
+    std::string print_expr(int indent = 0) const override {
+        return std::string(indent * 2,' ') + "Variable(" + varname + ")"; 
+    }
+};
+
+class AssignmentExpression : public Expression {
+public:
+    std::string var; 
+    std::unique_ptr<Expression> expr; 
+
+    AssignmentExpression(
+        std::string v, 
+        std::unique_ptr<Expression> e) : var{std::move(v)}, expr{std::move(e)} {};
+    
+    std::unique_ptr<Expression> eval() const override {
+        auto evaluated = expr->eval();
+        Expression::env[var] = std::move(evaluated); 
+        return Expression::env[var]->eval(); //TODO: probably keep but note
+    }
+
+    std::string print_expr(int indent = 0) const override {
+        return std::string(indent * 2,' ') + "Assignment(\n" + std::string(indent * 2 + 2,' ') + '\'' + var + '\'' + ",\n" + expr->print_expr(indent + 1) + ")"; 
+    }
+};
 
 class ExpressionList : public Expression {
 public: 
