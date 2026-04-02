@@ -21,7 +21,7 @@ namespace pegtl = tao::pegtl;
 */
 
 int main() {
-    std::string input = "44+56+33+37+21+9"; 
+    std::string input = "4-16"; 
     auto root = parse_pegtl(input); 
 
     if (!root) {

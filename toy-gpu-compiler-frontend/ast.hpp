@@ -72,7 +72,9 @@ public:
                 case '-': return std::make_unique<Integer>(ilval - irval);
                 case '*': return std::make_unique<Integer>(ilval * irval); 
                 case '/': 
-                    if (irval == 0) throw std::runtime_error("Division by zero"); 
+                    if (irval == 0) {
+                        throw std::runtime_error("Division by zero");
+                    } 
                     return std::make_unique<Integer>(ilval / irval);
                 default: throw std::runtime_error("Unknown operator"); 
             }
@@ -83,7 +85,7 @@ public:
 
     std::string print_expr(int indent = 0) const override {
         // std::cout << "print arith" << std::endl; 
-        return std::string(indent * 2,' ') + "Arithmetic(\n" + left->print_expr(indent + 1) + ",\n" + std::string(indent * 2 + 2,' ') + "+,\n" + right->print_expr(indent + 1) + ")"; 
+        return std::string(indent * 2,' ') + "Arithmetic(\n" + left->print_expr(indent + 1) + ",\n" + std::string(indent * 2 + 2,' ') + op + ",\n" + right->print_expr(indent + 1) + ")"; 
     }
 }; 
 
