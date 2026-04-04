@@ -103,7 +103,13 @@ namespace grammar {
 	struct program 
 		: pegtl::seq<
 			ws,
-			pegtl::star<pegtl::sor<assign_expr,arith_expr>>,
+			pegtl::star<
+				pegtl::sor<
+					assign_expr,
+					arith_expr
+				>,
+				pegtl::one<';'>
+			>,
 			pegtl::eof
 		> {}; 
 }; 

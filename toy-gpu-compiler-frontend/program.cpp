@@ -12,20 +12,20 @@ namespace pegtl = tao::pegtl;
 
 /*
     (-1+5)+(2+(+3))
-	[1,2,3,4,5]
+	[1,2,3,4,5] // doesn't work yet
 	(-1  + 5) +  (2+ +3  )
-	(-1  + 5) +  (2+ +3  ) [1,2]
-	x = 1 [3,3,3] 1  + (-2)
-	x = [1,2,3,4]
-	x = 1+1+1-1 //doesn't work
+	(-1  + 5) +  (2+ +3  ) [1,2] // doesn't work yet
+	x = 1 [3,3,3] 1  + (-2) // doesn't work yet
+	x = [1,2,3,4] // doesn't work yet
+	x = 1+1+1-1
 */
 
 int main() {
-    std::string input = "a = 1 + 1"; 
+    std::string input = "x = 1+1+1-1; (5 + 5); 3;"; 
     auto root = parse_pegtl(input); 
 
     if (!root) {
-		std::cout << "parse failed, root is nullptr" << "\n"; 
+		std::cout << "parse failed: result root is nullptr" << "\n"; 
         return 1; 
     }
     

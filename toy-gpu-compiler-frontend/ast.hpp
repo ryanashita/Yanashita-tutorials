@@ -157,7 +157,7 @@ public:
         for (int i = 0; i < expression_list.size(); ++i) {
             result += expression_list.at(i)->print_expr(indent + 1); 
             if (i + 1 < expression_list.size()) {
-                result += ","; // add comma between expressions
+                result += ",\n"; // add comma between expressions
             }
         }
         return result += "]"; 
