@@ -23,7 +23,6 @@ Working:
     x = 1; [3,3,3]; 1  + (-2);
     x = [1,2,3,4];
 In progress:
-	// why are semicolons unnecessary now?
 */
 
 int main(int argc, char* argv[]) {

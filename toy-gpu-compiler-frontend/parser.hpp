@@ -99,15 +99,16 @@ namespace grammar {
 
 	struct program 
 		: pegtl::seq<
-			pegtl::list<
-				ws,
+			ws,
+			pegtl::list_tail<
 				pegtl::sor<
 					assign_expr,
 					arith_expr,
 					vector
 				>,
-				pegtl::one<';'>
+				pegtl::seq<ws,pegtl::one<';'>,ws>
 			>,
+			ws,
 			pegtl::eof
 		> {}; 
 }; 
