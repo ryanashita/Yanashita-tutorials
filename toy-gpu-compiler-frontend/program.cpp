@@ -11,17 +11,27 @@ namespace pegtl = tao::pegtl;
 // g++ parser.cpp program.cpp -std=c++17 -O2 -o program
 
 /*
-    (-1+5)+(2+(+3))
-	[1,2,3,4,5] // doesn't work yet
-	(-1  + 5) +  (2+ +3  )
-	(-1  + 5) +  (2+ +3  ) [1,2] // doesn't work yet
-	x = 1 [3,3,3] 1  + (-2) // doesn't work yet
-	x = [1,2,3,4] // doesn't work yet
-	x = 1+1+1-1
+Working: 
+    (-1+5)+(2+(+3)); 
+	[1,2,3,4,5]; 
+	(-1  + 5) +  (2+ +3  );
+    x = 1+1+1-1; 
+    x = 1+1+1-1; (5 + 5); 3;
+    [1,2];
+    [1,2]; [3,4];
+    (-1  + 5) +  (2+ +3  ); [1,2];
+    x = 1; [3,3,3]; 1  + (-2);
+    x = [1,2,3,4];
+In progress:
+	// why are semicolons unnecessary now?
 */
 
-int main() {
-    std::string input = "x = 1+1+1-1; (5 + 5); 3;"; 
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " \"<expression>\"" << std::endl;
+        return 1; 
+    }
+    std::string input = argv[1]; 
     auto root = parse_pegtl(input); 
 
     if (!root) {

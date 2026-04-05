@@ -164,16 +164,44 @@ public:
     }
 };
 
-template<typename T>
 class Vector : public Expression { // math definition of a vector
 public: 
-    // size_t size = N; 
-    // T array[N]; 
+    size_t size; 
+    std::vector<std::unique_ptr<Integer>> int_vector; 
 
+    // default vector constructor. values will be added to vector instance with add function
     Vector() = default; 
 
-    // Vector(ValueList vlist) {};
+    std::unique_ptr<Expression> eval() const override {
+        auto result_vector = std::make_unique<Vector>(); 
+        for (const auto& expr : int_vector) {
+            auto evaluated = expr->eval(); 
+            result_vector->add(std::move(evaluated)); 
+        }
+        return result_vector; 
+    }
 
+    void add(std::unique_ptr<Expression> expr) {
+        // if the thing being added is a Integer, then allow the add. 
+        auto int_expr = std::unique_ptr<Integer>(dynamic_cast<Integer*>(expr.get()));
+        if (int_expr) {
+            expr.release(); 
+            int_vector.push_back(std::move(int_expr)); 
+        } else {
+            throw std::runtime_error("Can only add 'Integer' nodes to 'Vector' node"); 
+        }
+    } 
+
+    std::string print_expr(int indent = 0) const override {
+        std::string result = std::string(indent * 2, ' ') + "Vector[\n"; 
+        for (int i = 0; i < int_vector.size(); ++i) {
+            result += int_vector.at(i)->print_expr(indent + 1); 
+            if (i + 1 < int_vector.size()) {
+                result += ",\n"; // add comma between integers
+            }
+        }
+        return result += ']'; 
+    }
 };
 
 class Term : public Expression {};

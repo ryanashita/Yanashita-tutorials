@@ -65,31 +65,28 @@ namespace grammar {
 			ws
 		> {}; 
 	
-	// struct vector 
-	// : pegtl::seq<
-	// 	pegtl::one<'['>,
-	// 	ws,
-	// 	pegtl::sor<
-	// 		pegtl::seq<
-	// 			number,
-	// 			pegtl::plus<
-	// 				pegtl::seq<
-	// 					pegtl::one<','>,
-	// 					number
-	// 				>
-	// 			>
-	// 		>,
-	// 		number
-	// 	>,
-	// 	ws,
-	// 	pegtl::one<']'>
-	// 	> {}; 
+	struct vector 
+		: pegtl::seq<
+			pegtl::one<'['>,
+			ws,
+			pegtl::seq<
+				number,
+				pegtl::star<
+					pegtl::seq<
+						pegtl::one<','>,
+						number
+					>
+				>
+			>,
+			ws,
+			pegtl::one<']'>
+		> {}; 
 
 	struct expr 
 		: pegtl::sor<
 			arith_expr,
-			number
-			// vector
+			number,
+			vector
 		> {}; 
 	
 	struct assign_expr 
@@ -102,11 +99,12 @@ namespace grammar {
 
 	struct program 
 		: pegtl::seq<
-			ws,
-			pegtl::star<
+			pegtl::list<
+				ws,
 				pegtl::sor<
 					assign_expr,
-					arith_expr
+					arith_expr,
+					vector
 				>,
 				pegtl::one<';'>
 			>,
@@ -137,8 +135,9 @@ struct selector :
 				grammar::expr,
 				grammar::number,
 				grammar::term,
-				grammar::program
-				grammar::assign_expr
+				grammar::program,
+				grammar::assign_expr,
+				grammar::vector
 			*/
 			grammar::variable,
 			grammar::assign_op
@@ -293,6 +292,42 @@ struct selector< grammar::assign_expr > : std::true_type {
 };
 
 template<>
+struct selector< grammar::vector > : std::true_type {
+	template<typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- VECTOR TRANSFORM ---" << std::endl; 
+
+		if (node->children.empty()) {
+			std::cout << "vector children count: 0. shouldn't be possible to parse." << std::endl;
+			return;
+		}
+		std::cout << "vector children count: " << node->children.size() << std::endl; 
+		for (size_t i = 0; i < node->children.size(); ++i) {
+			auto* child = static_cast<my_ast_node*>(node->children[i].get()); 
+			std::cout << "  child[" << i << "] type: " << child->type;			
+			if (child->has_content()) {
+				std::cout << " content: '" << child->string() << "'"; 
+			}
+			std::cout << " has_ast: " << (child->ast ? "YES" : "NO") << std::endl;
+		}
+
+		// initialize Vector object
+		auto vector_expr = std::make_unique<Vector>(); 
+		for (auto& child : node->children) {
+			auto* my_ast_node_ch = static_cast<my_ast_node*>(child.get()); 
+			if (!my_ast_node_ch->ast) {
+				std::cout << "skipping null child ast in vector" << std::endl; 
+				continue; 
+			}
+			vector_expr->add(std::move(my_ast_node_ch->ast)); // add from child node to vector
+		}
+		std::cout << "Vector size: " << vector_expr->int_vector.size() << std::endl;
+		node->ast = std::move(vector_expr); 
+		assert(node->ast && "vector failed to produce AST");
+	}
+};
+
+template<>
 struct selector< grammar::program > : std::true_type {
 	template<typename... States>
 	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
@@ -331,4 +366,4 @@ struct selector< grammar::program > : std::true_type {
 
 std::unique_ptr<my_ast_node> parse_pegtl(std::string input);
 
-#endif
+#endif 
