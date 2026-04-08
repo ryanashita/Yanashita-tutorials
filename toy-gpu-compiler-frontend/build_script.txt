@@ -1,0 +1,10 @@
+rm -rf build/
+cmake -B build -S . 
+//-S. -> source code is located in current directory
+//-B -> add all generated files to build folder
+
+cmake --build build
+// --build -> tells cmake to build compiler project
+// build -> the directory to use
+
+./program ""
