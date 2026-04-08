@@ -84,9 +84,9 @@ namespace grammar {
 
 	struct expr 
 		: pegtl::sor<
-			arith_expr,
 			number,
-			vector
+			vector,
+			arith_expr
 		> {}; 
 	
 	struct assign_expr 
@@ -104,7 +104,8 @@ namespace grammar {
 				pegtl::sor<
 					assign_expr,
 					arith_expr,
-					vector
+					vector,
+					variable
 				>,
 				pegtl::seq<ws,pegtl::one<';'>,ws>
 			>,
@@ -201,6 +202,26 @@ struct selector< grammar::term> : std::true_type {
 			throw std::runtime_error("unexpected children count"); 
 		}
 		assert(node->ast && "term failed to produce AST");
+	}
+};
+
+template<>
+struct selector< grammar::variable > : std::true_type {
+	template< typename... States>
+	static void transform(std::unique_ptr<my_ast_node>& node, States&&...) {
+		std::cout << "\n--- VARIABLE TRANSFORM ---" << std::endl;
+
+		if (!node->has_content()) {
+			std::cout << "has_content: 0" << std::endl;
+			return;
+		} 
+
+		std::string content = node->string();
+        std::cout << "content: '" << content << "'" << std::endl; // cout for debug
+
+		// assigning ast the Variable object with value		
+		node->ast = std::make_unique<Variable>(node->string()); 
+		assert(node->ast && "variable failed to produce AST");
 	}
 };
 

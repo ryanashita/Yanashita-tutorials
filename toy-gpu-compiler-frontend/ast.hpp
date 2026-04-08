@@ -144,7 +144,8 @@ public:
             auto evaluated = expr->eval(); 
             result_list->add(std::move(evaluated)); 
         }
-        return result_list; 
+        
+        return std::move(result_list->expression_list[expression_list.size() - 1]); 
     }
 
     void add(std::unique_ptr<Expression> expr) {
