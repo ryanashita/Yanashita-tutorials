@@ -1,0 +1,83 @@
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse Integer 1 0.00163704
+Parse Positive Integer 1 0.00150838
+Parse Negative Integer 1 0.00138011
+Parse Addition 1 0.00141444
+Parse Subtraction 1 0.00141888
+Parse Multiplication 1 0.0015126
+Parse Division 1 0.00145591
+Parse Parentheses Addition  1 0.00156339
+Parse Parentheses Whitespace Addition  1 0.00164282
+Parse Vector  1 0.00162414
+Parse Assignment  1 0.00167639
+Parse Addition Assignment  1 0.00172802
+Parse Vector Assignment  1 0.00171037
+Parse Addition Whitespace Vector 1 0.00199737
+Parse Vector Vector 1 0.00188487
+Parse Addition Assignment Addition Integer 1 0.00214424
+Parse Assignment Vector Addition 1 0.00224219
+Parse Assignment Variable Addition Reassignment 1 0.0022895
+---

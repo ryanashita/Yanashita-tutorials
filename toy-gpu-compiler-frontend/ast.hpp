@@ -21,6 +21,8 @@ public:
 
     virtual std::string print_expr(int indent = 0) const = 0; 
 
+    virtual std::string print_line() const = 0; 
+
     virtual bool isInteger() const {
         return false; 
     } 
@@ -43,6 +45,10 @@ public:
     std::string print_expr(int indent = 0) const override {
         // std::cout << "print int" << std::endl; 
         return std::string(indent * 2,' ') + "Integer(" + std::to_string(value) + ")"; 
+    }
+
+    std::string print_line() const override {
+        return std::to_string(value); 
     }
 };
 
@@ -90,6 +96,10 @@ public:
         // std::cout << "print arith" << std::endl; 
         return std::string(indent * 2,' ') + "Arithmetic(\n" + left->print_expr(indent + 1) + ",\n" + std::string(indent * 2 + 2,' ') + op + ",\n" + right->print_expr(indent + 1) + ")"; 
     }
+
+    std::string print_line() const override {
+        return "(" + left->print_line() + " " + op + " " + right->print_line() + ")"; 
+    }
 }; 
 
 class Variable : public Expression {
@@ -108,6 +118,10 @@ public:
 
     std::string print_expr(int indent = 0) const override {
         return std::string(indent * 2,' ') + "Variable(" + varname + ")"; 
+    }
+
+    std::string print_line() const override {
+        return varname; 
     }
 };
 
@@ -128,6 +142,10 @@ public:
 
     std::string print_expr(int indent = 0) const override {
         return std::string(indent * 2,' ') + "Assignment(\n" + std::string(indent * 2 + 2,' ') + '\'' + var + '\'' + ",\n" + expr->print_expr(indent + 1) + ")"; 
+    }
+
+    std::string print_line() const override {
+        return var + " = " + expr->print_line(); 
     }
 };
 
@@ -159,6 +177,17 @@ public:
             result += expression_list.at(i)->print_expr(indent + 1); 
             if (i + 1 < expression_list.size()) {
                 result += ",\n"; // add comma between expressions
+            }
+        }
+        return result += "]"; 
+    }
+
+    std::string print_line() const override {
+        std::string result = "["; 
+        for (size_t i = 0; i < expression_list.size(); ++i) {
+            result += expression_list.at(i)->print_line(); 
+            if (i + 1 < expression_list.size()) {
+                result += ","; // add comma between expressions
             }
         }
         return result += "]"; 
@@ -199,6 +228,17 @@ public:
             result += int_vector.at(i)->print_expr(indent + 1); 
             if (i + 1 < int_vector.size()) {
                 result += ",\n"; // add comma between integers
+            }
+        }
+        return result += ']'; 
+    }
+
+    std::string print_line() const override {
+        std::string result = "["; 
+        for (int i = 0; i < int_vector.size(); ++i) {
+            result += int_vector.at(i)->print_line(); 
+            if (i + 1 < int_vector.size()) {
+                result += ","; // add comma between integers
             }
         }
         return result += ']'; 

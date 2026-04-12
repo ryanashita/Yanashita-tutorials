@@ -29,6 +29,8 @@ namespace grammar {
 			ws
 		> {}; 
 
+	struct variable : pegtl::identifier {}; 
+
 	struct term 
 		: pegtl::sor<
 			pegtl::seq<
@@ -36,10 +38,9 @@ namespace grammar {
 				arith_expr,
 				pegtl::one<')'>
 			>,
-			number
+			number,
+			variable
 		> {}; 
-
-	struct variable : pegtl::identifier {}; 
 
 	struct arith_op : pegtl::one<'+','-','*','/'> {};
 	
@@ -86,7 +87,8 @@ namespace grammar {
 		: pegtl::sor<
 			number,
 			vector,
-			arith_expr
+			arith_expr,
+			variable
 		> {}; 
 	
 	struct assign_expr 
@@ -388,4 +390,4 @@ struct selector< grammar::program > : std::true_type {
 
 std::unique_ptr<my_ast_node> parse_pegtl(std::string input);
 
-#endif 
+#endif

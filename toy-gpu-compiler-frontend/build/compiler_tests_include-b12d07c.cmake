@@ -1,0 +1,5 @@
+if(EXISTS "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests_tests-b12d07c.cmake")
+  include("/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests_tests-b12d07c.cmake")
+else()
+  add_test(compiler_tests_NOT_BUILT-b12d07c compiler_tests_NOT_BUILT-b12d07c)
+endif()
