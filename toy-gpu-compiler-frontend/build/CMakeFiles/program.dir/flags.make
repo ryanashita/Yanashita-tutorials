@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend
 
-CXX_FLAGS = -std=c++17
+CXX_FLAGS = -g -std=c++17
 

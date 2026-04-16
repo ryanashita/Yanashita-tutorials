@@ -6,7 +6,7 @@
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/parse_tree.hpp>
 
-namespace pegtl = tao::pegtl; 
+namespace pegtl = tao::pegtl;
 
 // g++ parser.cpp program.cpp -std=c++17 -O2 -o program
 
@@ -62,6 +62,12 @@ int main(int argc, char* argv[]) {
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
+
+        /*
+            TODO:
+            - change the arguments: ./program "filename" value1, value2, value3, ...
+            - after parsing and creating an AST, generate PTX with the params being the 
+        */
     } else {
         std::cout << "parse failed, root has no children" << "\n"; 
         return 1; 
