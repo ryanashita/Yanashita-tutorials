@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
         if (program_node->ast) {
             std::cout << "parse successful! original AST:\n"; 
-            std::cout << program_node->ast->print_line() << std::endl;
+            std::cout << program_node->ast->print_expr() << std::endl;
 
             std::cout << "evaluated AST:\n"; 
             auto eval_result = program_node->ast->eval(); 

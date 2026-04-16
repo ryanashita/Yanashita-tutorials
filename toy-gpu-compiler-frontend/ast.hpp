@@ -15,6 +15,10 @@ class Expression : public ASTNode {
 public: 
     static inline std::unordered_map<std::string, std::unique_ptr<Expression>> env; // use inline keyword, applied to static members. allows initialization directly in header file
 
+    static inline std::vector<std::string> tac_lines; // three address code lines
+
+    static inline int tac_line_number = 0;  
+
     virtual ~Expression() = default; 
 
     virtual std::unique_ptr<Expression> eval() const = 0; // no impl, all derived classes override and impl
@@ -22,6 +26,8 @@ public:
     virtual std::string print_expr(int indent = 0) const = 0; 
 
     virtual std::string print_line() const = 0; 
+
+    virtual void three_address_code() const = 0; 
 
     virtual bool isInteger() const {
         return false; 
@@ -40,6 +46,12 @@ public:
 
     bool isInteger() const override {
         return true; 
+    }
+
+    void three_address_code() const override {
+        std::string tac = "t" + std::to_string(++Expression::tac_line_number) + " <- " + std::to_string(value); 
+        Expression::tac_lines.push_back(tac);
+        tac_value = Expression::tac_line_number;  
     }
 
     std::string print_expr(int indent = 0) const override {
@@ -78,6 +90,35 @@ public:
             int irval = rval_int->value; 
             switch(op) {
                 case '+': return std::make_unique<Integer>(ilval + irval); 
+                case '-': return std::make_unique<Integer>(ilval - irval);
+                case '*': return std::make_unique<Integer>(ilval * irval); 
+                case '/': 
+                    if (irval == 0) {
+                        throw std::runtime_error("Division by zero");
+                    } 
+                    return std::make_unique<Integer>(ilval / irval);
+                default: throw std::runtime_error("Unknown operator"); 
+            }
+        } else {
+            throw std::runtime_error("Cannot add nodes that are not Integer"); 
+        }
+    }
+
+    void three_address_code() const override {
+
+        //must typecheck that it is Integer
+        Integer* lval_int = dynamic_cast<Integer*>(left.get()); //dynamic_cast returns nullptr on failure. Failure means that the base class is not a derived class
+        Integer* rval_int = dynamic_cast<Integer*>(r.get());
+        std::string tac; 
+        //The raw pointer becomes dangling after the unique_ptr deletes the memory
+        if (lval_int && rval_int) {
+            //after typecheck
+            int ilval = lval_int->value;
+            int irval = rval_int->value; 
+            switch(op) {
+                case '+': 
+                    return std::make_unique<Integer>(ilval + irval); 
+                    tac = "t" + std::to_string(++Expression::tac_line_number) + " <- " + std::to_string(value); 
                 case '-': return std::make_unique<Integer>(ilval - irval);
                 case '*': return std::make_unique<Integer>(ilval * irval); 
                 case '/': 
