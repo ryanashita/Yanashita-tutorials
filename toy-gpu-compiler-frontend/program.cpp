@@ -49,16 +49,18 @@ int main(int argc, char* argv[]) {
 
         if (program_node->ast) {
             std::cout << "parse successful! original AST:\n"; 
-            std::cout << program_node->ast->print_expr() << std::endl;
+            std::cout << program_node->ast->print_expr(2) << std::endl;
 
-            std::cout << "evaluated AST:\n"; 
-            auto eval_result = program_node->ast->eval(); 
-            std::cout << eval_result->print_expr(2) << std::endl;
+            // std::cout << "evaluated AST:\n"; 
+            // auto eval_result = program_node->ast->eval(); 
+            // std::cout << eval_result->print_expr(2) << std::endl;
 
-            std::cout << "env map pairs:\n"; // print out variables and the values they were initialized with
-            for (const auto& [name,expr] : program_node->ast->env) {
-                std::cout << name << " -> " << expr->print_expr() << std::endl;
-            }
+            // std::cout << "env map pairs:\n"; // print out variables and the values they were initialized with
+            // for (const auto& [name,expr] : program_node->ast->env) {
+            //     std::cout << name << " -> " << expr->print_expr() << std::endl;
+            // }
+
+            program_node->ast->three_address_code(); 
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }

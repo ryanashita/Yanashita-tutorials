@@ -15,9 +15,12 @@ class Expression : public ASTNode {
 public: 
     static inline std::unordered_map<std::string, std::unique_ptr<Expression>> env; // use inline keyword, applied to static members. allows initialization directly in header file
 
-    static inline std::vector<std::string> tac_lines; // three address code lines
-
+    static inline std::vector<std::string> tac_lines; // three address code lines result
+    static inline std::unordered_map<std::string, int> expr_to_temp; // stores assigned values to remove redundancy
     static inline int tac_line_number = 0;  
+    static inline int temp_counter = 0; 
+    static inline int label_counter = 0; 
+    int temp_id = -1; 
 
     virtual ~Expression() = default; 
 
@@ -27,11 +30,22 @@ public:
 
     virtual std::string print_line() const = 0; 
 
-    virtual void three_address_code() const = 0; 
+    virtual void three_address_code() {}; 
+    
+    virtual std::string get_expression_key() const {return "";}; 
 
     virtual bool isInteger() const {
         return false; 
     } 
+
+    // std::string get_temp_name() const {
+    //     if (temp_id == -1) return ""; 
+    //     return "t" + std::to_string(temp_id); 
+    // }
+
+    static int new_temp() {
+        return ++temp_counter; 
+    }
 }; 
 
 class Integer : public Expression {
@@ -48,10 +62,20 @@ public:
         return true; 
     }
 
-    void three_address_code() const override {
-        std::string tac = "t" + std::to_string(++Expression::tac_line_number) + " <- " + std::to_string(value); 
+    std::string get_expression_key() const override {
+        return std::to_string(value); 
+    }
+
+    void three_address_code() override {
+        auto it = expr_to_temp.find(get_expression_key()); 
+        if (it != expr_to_temp.end()) {
+            temp_id = it->second; 
+            return;
+        }
+        temp_id = Expression::new_temp(); 
+        std::string tac = "t" + std::to_string(temp_id) + " <- " + std::to_string(value); 
         Expression::tac_lines.push_back(tac);
-        tac_value = Expression::tac_line_number;  
+        Expression::expr_to_temp[get_expression_key()] = temp_id; 
     }
 
     std::string print_expr(int indent = 0) const override {
@@ -104,33 +128,31 @@ public:
         }
     }
 
-    void three_address_code() const override {
+    std::string get_expression_key() const override {
+        std::string left_key = left->get_expression_key(); 
+        std::string right_key = right->get_expression_key(); 
+        return "(" + left_key + " " + op + " " + right_key + ")";
+    }
 
-        //must typecheck that it is Integer
-        Integer* lval_int = dynamic_cast<Integer*>(left.get()); //dynamic_cast returns nullptr on failure. Failure means that the base class is not a derived class
-        Integer* rval_int = dynamic_cast<Integer*>(r.get());
-        std::string tac; 
-        //The raw pointer becomes dangling after the unique_ptr deletes the memory
-        if (lval_int && rval_int) {
-            //after typecheck
-            int ilval = lval_int->value;
-            int irval = rval_int->value; 
-            switch(op) {
-                case '+': 
-                    return std::make_unique<Integer>(ilval + irval); 
-                    tac = "t" + std::to_string(++Expression::tac_line_number) + " <- " + std::to_string(value); 
-                case '-': return std::make_unique<Integer>(ilval - irval);
-                case '*': return std::make_unique<Integer>(ilval * irval); 
-                case '/': 
-                    if (irval == 0) {
-                        throw std::runtime_error("Division by zero");
-                    } 
-                    return std::make_unique<Integer>(ilval / irval);
-                default: throw std::runtime_error("Unknown operator"); 
-            }
-        } else {
-            throw std::runtime_error("Cannot add nodes that are not Integer"); 
+    void three_address_code() override {
+        left->three_address_code(); 
+        right->three_address_code();
+        
+        std::string key = get_expression_key(); 
+
+        auto it = Expression::expr_to_temp.find(key); 
+        if (it != Expression::expr_to_temp.end()) {
+            temp_id = it->second; 
+            return;
         }
+
+        temp_id = Expression::new_temp(); 
+        std::string tac = "t" + std::to_string(temp_id) + " <- " + 
+            "t" + std::to_string(left->temp_id) + " " + 
+            op + " " + 
+            "t" + std::to_string(right->temp_id); 
+        Expression::tac_lines.push_back(tac);
+        Expression::expr_to_temp[key] = temp_id; 
     }
 
     std::string print_expr(int indent = 0) const override {
@@ -157,6 +179,23 @@ public:
         return expr->second->eval(); 
     }
 
+    std::string get_expression_key() const override {
+        return varname; 
+    }
+
+    void three_address_code() override {
+        std::string key = get_expression_key(); 
+        auto it = Expression::expr_to_temp.find(key); 
+        if (it != Expression::expr_to_temp.end()) {
+            temp_id = it->second; 
+            return; 
+        }
+        temp_id = new_temp(); 
+        std::string tac = "t" + std::to_string(temp_id) + " <- "  + varname; 
+        Expression::tac_lines.push_back(tac);
+        Expression::expr_to_temp[key] = temp_id; 
+    }
+
     std::string print_expr(int indent = 0) const override {
         return std::string(indent * 2,' ') + "Variable(" + varname + ")"; 
     }
@@ -180,6 +219,26 @@ public:
         Expression::env[var] = std::move(evaluated); 
         return Expression::env[var]->eval(); //TODO: probably keep but note
     }
+
+    std::string get_expression_key() const override {
+        return ""; 
+    }
+
+    void three_address_code() override {
+        // assignments modify state
+        expr->three_address_code(); 
+
+        std::string key = var + "=" + expr->get_expression_key(); 
+
+        temp_id = new_temp(); 
+        std::string tac1 = "t" + std::to_string(temp_id) + "<-" + std::to_string(expr->temp_id); 
+
+        temp_id = new_temp(); 
+        std::string tac2 = var + std::to_string(temp_id) + "<-"  + tac1; 
+        Expression::tac_lines.push_back(tac1);
+        Expression::tac_lines.push_back(tac2);
+        temp_id = expr->temp_id; 
+    } 
 
     std::string print_expr(int indent = 0) const override {
         return std::string(indent * 2,' ') + "Assignment(\n" + std::string(indent * 2 + 2,' ') + '\'' + var + '\'' + ",\n" + expr->print_expr(indent + 1) + ")"; 
@@ -209,6 +268,15 @@ public:
 
     void add(std::unique_ptr<Expression> expr) {
         expression_list.push_back(std::move(expr)); 
+    }
+
+    void three_address_code() override {
+        for (const auto& expr : expression_list) {
+            expr->three_address_code(); 
+        }
+        for (const auto& tac : tac_lines) {
+            std::cout << tac << "\n"; 
+        }
     }
 
     std::string print_expr(int indent = 0) const override {
