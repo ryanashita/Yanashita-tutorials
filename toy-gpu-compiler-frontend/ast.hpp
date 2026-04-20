@@ -6,12 +6,7 @@
 #include <vector>
 #include <unordered_map>
 
-class ASTNode {
-public: 
-    virtual ~ASTNode() = default; 
-}; 
-
-class Expression : public ASTNode {
+class Expression {
 public: 
     static inline std::unordered_map<std::string, std::unique_ptr<Expression>> env; // use inline keyword, applied to static members. allows initialization directly in header file
 
