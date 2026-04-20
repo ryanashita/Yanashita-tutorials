@@ -12,6 +12,8 @@ I decided to build my parser using a parsing expression grammar (PEG) library. A
 
 Before implementing the language and parse expression grammar, I wrote out my starter language using the Backus-Naur form (BNF). This helped me reason about the simplest iteration of my language. Although the syntax of the language changed as I developed the parser, starting out with writing the BNF definitely made my life easier. 
 
+Since I want to be able to optimize the IR of my language, I chose to create custom AST nodes with a base class ```Expression```. I figured that it would be easier to run analysis and make optimizations if I knew exactly how the AST (first intermediate representation) worked. Also, I knew it would be a fun aspect of my study and I would learn a lot about object-oriented programming. 
+
 Now, onto the PEGTL...I enjoyed building with PEGTL and learned quite a bit about template meta-programming in the process. ```~/parser.hpp``` holds most of the code for the parser. Going through how the parse expression grammar is built: Within the grammar namespace, a ```struct``` is constructed for each rule.
 ```
 struct number 
@@ -93,6 +95,53 @@ Each specialization of the selector class template has the option to have a ```t
 Take a look at the code, in the ```~/parser.hpp``` file for the other selector class template specializations.
 
 ## Custom AST Nodes with Inheritance in C++
+
+Moving on to the construction of the custom AST nodes. As stated before, the ```Expression``` class is the base class of the AST, and all other node classes are directly derived from this class. Ignoring the class methods and variables required for the three address code (TAC) and codegen, the base class is comprised of: 
+```
+virtual std::unique_ptr<Expression> eval() const = 0;
+virtual std::string print_expr(int indent = 0) const = 0;
+virtual bool isInteger() const { return false; }
+```
+```eval()``` and ```print_expr``` both have no implementation in the base class; each derived class overrides the base class definition of the variable. ```eval()``` is the method called when the goal is to interpret the language (with an "Interpreter"). The C++ compiler (in this case ```clang```) evalutes the expression. The way the whole program is evaluated with ```eval()``` is the magic of polymorphic recursion: virtual methods that call themselves on children. The ```print_expr``` method also uses polymorphic recursion, but this method pretty-prints the AST to the console. 
+
+```isInteger()``` has an implementation, ```return false;``` because ```Expression``` is not an ```Integer```. Only the ```Integer``` derived class overrides this method implementation to return ```true```;
+
+You may have noticed the base class has no constructor. That is ok, because each derived class has its own constructor, taking specific parameters depending on the type of the AST node. 
+
+For example, the constructor for ```class ArithmeticExpression : public Expression``` takes three parameters: 
+1. ```std::unique_ptr<Expression> left```
+2. ```std::unique_ptr<Expression> right;```
+3. ```char op;```
+The three parameters map to the left side of an arithmetic expression, the right side of an arithmetic expression, and the arithmetic operator (Ex: 1 + 1). Using the a member initializer list, the constructor initializes class members before the constructor body executes. This is more efficient than assignment inside the constructor body because there is no rewriting of values.
+
+Continuing with the contents of ```ArithmeticExpression```, it has the required override of the ```eval()``` method. Speaking vaguely, the method 
+1. Evalutes the ```left``` and ```right``` sub-expressions
+2. Typechecks that each sub-expression is an ```Integer``` (Integers are the only types in the language so far)
+3. If both ```right``` and ```left``` are not ```nullptr```, a new ```std::unique_ptr``` is constructed with the values of each sub-expression and returned.
+
+An important part of the polymorphic implementation is the use of ```std::dynamic_cast``` in the line 
+```
+Integer* rval_int = dynamic_cast<Integer*>(rval.get());
+```
+This line converts a raw pointer of a base class ```Expression``` to a raw pointer of the derived class ```Integer```. If the ```rval_int``` is not ```nullptr```, it means the cast was successful and the ```Expression``` was actually an ```Integer```. 
+
+Take a look at the code, in the ```~/parser.hpp``` file, for the other AST Node definitions and implementations.
+
+## Conclusion
+This tutorial explained how the parser and AST for this DSL and compiler-to-PTX is constructed. The implementation for the parser, using taocpp/PEGTL parse expression grammar library, heavily utilizes template meta-programming. My AST node implementation relies heavily on inheritance, polymorphism, and recursion. 
+
+At the time of writing this tutorial, I am developing the middle-end (IR and optimized IR) as well as backend (codegen, instruction selection/scheduling, register allocation). 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
