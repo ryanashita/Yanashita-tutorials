@@ -12,9 +12,7 @@ public:
 
     static inline std::vector<std::string> tac_lines; // three address code lines result
     static inline std::unordered_map<std::string, int> expr_to_temp; // stores assigned values to remove redundancy
-    static inline int tac_line_number = 0;  
-    static inline int temp_counter = 0; 
-    static inline int label_counter = 0; 
+    static inline int temp_counter = 0; // # of temp variables in TAC, keeps track and also makes it easy to name
     int temp_id = -1; 
 
     virtual ~Expression() = default; 
@@ -33,13 +31,9 @@ public:
         return false; 
     } 
 
-    // std::string get_temp_name() const {
-    //     if (temp_id == -1) return ""; 
-    //     return "t" + std::to_string(temp_id); 
-    // }
-
     static int new_temp() {
         return ++temp_counter; 
+        // TODO: may need to add debugging and tests
     }
 }; 
 
@@ -63,11 +57,11 @@ public:
 
     void three_address_code() override {
         auto it = expr_to_temp.find(get_expression_key()); 
-        if (it != expr_to_temp.end()) {
+        if (it != expr_to_temp.end()) { // if the key is already in the TAC map, reuse temp_id. 
             temp_id = it->second; 
             return;
         }
-        temp_id = Expression::new_temp(); 
+        temp_id = Expression::new_temp(); // create a new temp, i.e increment temp_counter
         std::string tac = "t" + std::to_string(temp_id) + " <- " + std::to_string(value); 
         Expression::tac_lines.push_back(tac);
         Expression::expr_to_temp[get_expression_key()] = temp_id; 
@@ -130,7 +124,7 @@ public:
     }
 
     void three_address_code() override {
-        left->three_address_code(); 
+        left->three_address_code(); // run TAC on left and right sides, otherwise can't generate most optimal TAC lines for this node
         right->three_address_code();
         
         std::string key = get_expression_key(); 
@@ -181,7 +175,7 @@ public:
     void three_address_code() override {
         std::string key = get_expression_key(); 
         auto it = Expression::expr_to_temp.find(key); 
-        if (it != Expression::expr_to_temp.end()) {
+        if (it != Expression::expr_to_temp.end()) { // same logic as integer
             temp_id = it->second; 
             return; 
         }
@@ -223,15 +217,17 @@ public:
         // assignments modify state
         expr->three_address_code(); 
 
-        std::string key = var + "=" + expr->get_expression_key(); 
+        std::string key = expr->get_expression_key(); 
 
-        temp_id = new_temp(); 
-        std::string tac1 = "t" + std::to_string(temp_id) + "<-" + std::to_string(expr->temp_id); 
+        auto it = Expression::expr_to_temp.find(key); 
+        if (it == Expression::expr_to_temp.end()) { // if no key for the rvalue, something went wrong. return 
+            std::exit(1);  
+        }
+        temp_id = it->second; 
+        // don't return here, need to save the temp_id and use it as rvalue below
 
-        temp_id = new_temp(); 
-        std::string tac2 = var + std::to_string(temp_id) + "<-"  + tac1; 
+        std::string tac1 = var + " <- " + "t" + std::to_string(temp_id); 
         Expression::tac_lines.push_back(tac1);
-        Expression::tac_lines.push_back(tac2);
         temp_id = expr->temp_id; 
     } 
 
