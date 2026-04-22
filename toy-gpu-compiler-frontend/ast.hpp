@@ -265,9 +265,6 @@ public:
         for (const auto& expr : expression_list) {
             expr->three_address_code(); 
         }
-        for (const auto& tac : tac_lines) {
-            std::cout << tac << "\n"; 
-        }
     }
 
     std::string print_expr(int indent = 0) const override {

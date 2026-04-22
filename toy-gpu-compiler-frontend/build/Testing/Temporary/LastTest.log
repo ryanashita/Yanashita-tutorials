@@ -1,14 +1,14 @@
-Start testing: Apr 12 20:42 UTC
+Start testing: Apr 22 14:27 UTC
 ----------------------------------------------------------
-1/18 Testing: Parse Integer
-1/18 Test: Parse Integer
+1/19 Testing: Parse Integer
+1/19 Test: Parse Integer
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Integer"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Integer" start time: Apr 12 20:42 UTC
+"Parse Integer" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Integer"
-Randomness seeded to: 4122151900
+Randomness seeded to: 2933482985
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -36,19 +36,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Integer" end time: Apr 12 20:42 UTC
+"Parse Integer" end time: Apr 22 14:27 UTC
 "Parse Integer" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-2/18 Testing: Parse Positive Integer
-2/18 Test: Parse Positive Integer
+2/19 Testing: Parse Positive Integer
+2/19 Test: Parse Positive Integer
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Positive Integer"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Positive Integer" start time: Apr 12 20:42 UTC
+"Parse Positive Integer" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Positive Integer"
-Randomness seeded to: 2406186482
+Randomness seeded to: 3110643387
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -76,19 +76,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Positive Integer" end time: Apr 12 20:42 UTC
+"Parse Positive Integer" end time: Apr 22 14:27 UTC
 "Parse Positive Integer" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-3/18 Testing: Parse Negative Integer
-3/18 Test: Parse Negative Integer
+3/19 Testing: Parse Negative Integer
+3/19 Test: Parse Negative Integer
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Negative Integer"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Negative Integer" start time: Apr 12 20:42 UTC
+"Parse Negative Integer" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Negative Integer"
-Randomness seeded to: 677703134
+Randomness seeded to: 550383196
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -116,19 +116,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Negative Integer" end time: Apr 12 20:42 UTC
+"Parse Negative Integer" end time: Apr 22 14:27 UTC
 "Parse Negative Integer" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-4/18 Testing: Parse Addition
-4/18 Test: Parse Addition
+4/19 Testing: Parse Addition
+4/19 Test: Parse Addition
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Addition"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Addition" start time: Apr 12 20:42 UTC
+"Parse Addition" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Addition"
-Randomness seeded to: 3728086333
+Randomness seeded to: 407229
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -165,19 +165,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Addition" end time: Apr 12 20:42 UTC
+"Parse Addition" end time: Apr 22 14:27 UTC
 "Parse Addition" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-5/18 Testing: Parse Subtraction
-5/18 Test: Parse Subtraction
+5/19 Testing: Parse Subtraction
+5/19 Test: Parse Subtraction
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Subtraction"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Subtraction" start time: Apr 12 20:42 UTC
+"Parse Subtraction" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Subtraction"
-Randomness seeded to: 309601877
+Randomness seeded to: 2374117360
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -214,19 +214,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Subtraction" end time: Apr 12 20:42 UTC
+"Parse Subtraction" end time: Apr 22 14:27 UTC
 "Parse Subtraction" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-6/18 Testing: Parse Multiplication
-6/18 Test: Parse Multiplication
+6/19 Testing: Parse Multiplication
+6/19 Test: Parse Multiplication
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Multiplication"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Multiplication" start time: Apr 12 20:42 UTC
+"Parse Multiplication" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Multiplication"
-Randomness seeded to: 1511058126
+Randomness seeded to: 1678693522
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -263,19 +263,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Multiplication" end time: Apr 12 20:42 UTC
+"Parse Multiplication" end time: Apr 22 14:27 UTC
 "Parse Multiplication" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-7/18 Testing: Parse Division
-7/18 Test: Parse Division
+7/19 Testing: Parse Division
+7/19 Test: Parse Division
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Division"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Division" start time: Apr 12 20:42 UTC
+"Parse Division" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Division"
-Randomness seeded to: 4068898677
+Randomness seeded to: 1435256657
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -312,19 +312,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Division" end time: Apr 12 20:42 UTC
+"Parse Division" end time: Apr 22 14:27 UTC
 "Parse Division" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-8/18 Testing: Parse Parentheses Addition 
-8/18 Test: Parse Parentheses Addition 
+8/19 Testing: Parse Parentheses Addition 
+8/19 Test: Parse Parentheses Addition 
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Parentheses Addition "
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Parentheses Addition " start time: Apr 12 20:42 UTC
+"Parse Parentheses Addition " start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Parentheses Addition"
-Randomness seeded to: 3897964834
+Randomness seeded to: 4273183014
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -403,19 +403,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Parentheses Addition " end time: Apr 12 20:42 UTC
+"Parse Parentheses Addition " end time: Apr 22 14:27 UTC
 "Parse Parentheses Addition " time elapsed: 00:00:00
 ----------------------------------------------------------
 
-9/18 Testing: Parse Parentheses Whitespace Addition 
-9/18 Test: Parse Parentheses Whitespace Addition 
+9/19 Testing: Parse Parentheses Whitespace Addition 
+9/19 Test: Parse Parentheses Whitespace Addition 
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Parentheses Whitespace Addition "
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Parentheses Whitespace Addition " start time: Apr 12 20:42 UTC
+"Parse Parentheses Whitespace Addition " start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Parentheses Whitespace Addition"
-Randomness seeded to: 1769871899
+Randomness seeded to: 9214419
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -486,19 +486,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Parentheses Whitespace Addition " end time: Apr 12 20:42 UTC
+"Parse Parentheses Whitespace Addition " end time: Apr 22 14:27 UTC
 "Parse Parentheses Whitespace Addition " time elapsed: 00:00:00
 ----------------------------------------------------------
 
-10/18 Testing: Parse Vector 
-10/18 Test: Parse Vector 
+10/19 Testing: Parse Vector 
+10/19 Test: Parse Vector 
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Vector "
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Vector " start time: Apr 12 20:42 UTC
+"Parse Vector " start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Vector"
-Randomness seeded to: 3005736367
+Randomness seeded to: 1347403506
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -539,19 +539,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Vector " end time: Apr 12 20:42 UTC
+"Parse Vector " end time: Apr 22 14:27 UTC
 "Parse Vector " time elapsed: 00:00:00
 ----------------------------------------------------------
 
-11/18 Testing: Parse Assignment 
-11/18 Test: Parse Assignment 
+11/19 Testing: Parse Assignment 
+11/19 Test: Parse Assignment 
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Assignment "
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Assignment " start time: Apr 12 20:42 UTC
+"Parse Assignment " start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Assignment"
-Randomness seeded to: 705411142
+Randomness seeded to: 3557596181
 === START PARSE PEGTL ===
 
 --- VARIABLE TRANSFORM ---
@@ -580,19 +580,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Assignment " end time: Apr 12 20:42 UTC
+"Parse Assignment " end time: Apr 22 14:27 UTC
 "Parse Assignment " time elapsed: 00:00:00
 ----------------------------------------------------------
 
-12/18 Testing: Parse Addition Assignment 
-12/18 Test: Parse Addition Assignment 
+12/19 Testing: Parse Addition Assignment 
+12/19 Test: Parse Addition Assignment 
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Addition Assignment "
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Addition Assignment " start time: Apr 12 20:42 UTC
+"Parse Addition Assignment " start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Addition Assignment"
-Randomness seeded to: 3004148869
+Randomness seeded to: 2406365364
 === START PARSE PEGTL ===
 
 --- VARIABLE TRANSFORM ---
@@ -664,19 +664,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Addition Assignment " end time: Apr 12 20:42 UTC
+"Parse Addition Assignment " end time: Apr 22 14:27 UTC
 "Parse Addition Assignment " time elapsed: 00:00:00
 ----------------------------------------------------------
 
-13/18 Testing: Parse Vector Assignment 
-13/18 Test: Parse Vector Assignment 
+13/19 Testing: Parse Vector Assignment 
+13/19 Test: Parse Vector Assignment 
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Vector Assignment "
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Vector Assignment " start time: Apr 12 20:42 UTC
+"Parse Vector Assignment " start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Vector Assignment"
-Randomness seeded to: 4041475427
+Randomness seeded to: 3555435574
 === START PARSE PEGTL ===
 
 --- VARIABLE TRANSFORM ---
@@ -722,19 +722,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Vector Assignment " end time: Apr 12 20:42 UTC
+"Parse Vector Assignment " end time: Apr 22 14:27 UTC
 "Parse Vector Assignment " time elapsed: 00:00:00
 ----------------------------------------------------------
 
-14/18 Testing: Parse Addition Whitespace Vector
-14/18 Test: Parse Addition Whitespace Vector
+14/19 Testing: Parse Addition Whitespace Vector
+14/19 Test: Parse Addition Whitespace Vector
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Addition Whitespace Vector"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Addition Whitespace Vector" start time: Apr 12 20:42 UTC
+"Parse Addition Whitespace Vector" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Addition Whitespace Vector"
-Randomness seeded to: 338526287
+Randomness seeded to: 2001311501
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -818,19 +818,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Addition Whitespace Vector" end time: Apr 12 20:42 UTC
+"Parse Addition Whitespace Vector" end time: Apr 22 14:27 UTC
 "Parse Addition Whitespace Vector" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-15/18 Testing: Parse Vector Vector
-15/18 Test: Parse Vector Vector
+15/19 Testing: Parse Vector Vector
+15/19 Test: Parse Vector Vector
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Vector Vector"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Vector Vector" start time: Apr 12 20:42 UTC
+"Parse Vector Vector" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Vector Vector"
-Randomness seeded to: 1193907605
+Randomness seeded to: 3721186286
 === START PARSE PEGTL ===
 
 --- NUMBER TRANSFORM ---
@@ -872,19 +872,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Vector Vector" end time: Apr 12 20:42 UTC
+"Parse Vector Vector" end time: Apr 22 14:27 UTC
 "Parse Vector Vector" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-16/18 Testing: Parse Addition Assignment Addition Integer
-16/18 Test: Parse Addition Assignment Addition Integer
+16/19 Testing: Parse Addition Assignment Addition Integer
+16/19 Test: Parse Addition Assignment Addition Integer
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Addition Assignment Addition Integer"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Addition Assignment Addition Integer" start time: Apr 12 20:42 UTC
+"Parse Addition Assignment Addition Integer" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Addition Assignment Addition Integer"
-Randomness seeded to: 2621867599
+Randomness seeded to: 2004239370
 === START PARSE PEGTL ===
 
 --- VARIABLE TRANSFORM ---
@@ -997,19 +997,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Addition Assignment Addition Integer" end time: Apr 12 20:42 UTC
+"Parse Addition Assignment Addition Integer" end time: Apr 22 14:27 UTC
 "Parse Addition Assignment Addition Integer" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-17/18 Testing: Parse Assignment Vector Addition
-17/18 Test: Parse Assignment Vector Addition
+17/19 Testing: Parse Assignment Vector Addition
+17/19 Test: Parse Assignment Vector Addition
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Assignment Vector Addition"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Assignment Vector Addition" start time: Apr 12 20:42 UTC
+"Parse Assignment Vector Addition" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Assignment Vector Addition"
-Randomness seeded to: 3170657674
+Randomness seeded to: 3681862141
 === START PARSE PEGTL ===
 
 --- VARIABLE TRANSFORM ---
@@ -1084,19 +1084,19 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Assignment Vector Addition" end time: Apr 12 20:42 UTC
+"Parse Assignment Vector Addition" end time: Apr 22 14:27 UTC
 "Parse Assignment Vector Addition" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-18/18 Testing: Parse Assignment Variable Addition Reassignment
-18/18 Test: Parse Assignment Variable Addition Reassignment
+18/19 Testing: Parse Assignment Variable Addition Reassignment
+18/19 Test: Parse Assignment Variable Addition Reassignment
 Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Assignment Variable Addition Reassignment"
 Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
-"Parse Assignment Variable Addition Reassignment" start time: Apr 12 20:42 UTC
+"Parse Assignment Variable Addition Reassignment" start time: Apr 22 14:27 UTC
 Output:
 ----------------------------------------------------------
 Filters: "Parse Assignment Variable Addition Reassignment"
-Randomness seeded to: 2834933162
+Randomness seeded to: 1695085733
 === START PARSE PEGTL ===
 
 --- VARIABLE TRANSFORM ---
@@ -1178,8 +1178,74 @@ All tests passed (4 assertions in 1 test case)
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"Parse Assignment Variable Addition Reassignment" end time: Apr 12 20:42 UTC
+"Parse Assignment Variable Addition Reassignment" end time: Apr 22 14:27 UTC
 "Parse Assignment Variable Addition Reassignment" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Apr 12 20:42 UTC
+19/19 Testing: Parse Emit Three Address Code
+19/19 Test: Parse Emit Three Address Code
+Command: "/home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build/compiler_tests" "Parse Emit Three Address Code"
+Directory: /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/build
+"Parse Emit Three Address Code" start time: Apr 22 14:27 UTC
+Output:
+----------------------------------------------------------
+Filters: "Parse Emit Three Address Code"
+Randomness seeded to: 2880219290
+=== START PARSE PEGTL ===
+
+--- VARIABLE TRANSFORM ---
+content: 'x'
+
+--- NUMBER TRANSFORM ---
+content: '1 '
+
+--- TERM TRANSFORM ---
+term children count: 1
+  child[0] type: grammar::number content: '1 ' has_ast: YES
+
+--- NUMBER TRANSFORM ---
+content: '2'
+
+--- TERM TRANSFORM ---
+term children count: 1
+  child[0] type: grammar::number content: '2' has_ast: YES
+
+--- ARITH_EXPR TRANSFORM ---
+arith children count: 3
+  child[0] type: grammar::term content: '1 ' has_ast: YES
+  child[1] type: grammar::arith_op content: '+' has_ast: NO
+  child[2] type: grammar::term content: '2' has_ast: YES
+
+--- TERM TRANSFORM ---
+term children count: 1
+  child[0] type: grammar::arith_expr content: '1 + 2' has_ast: YES
+
+--- ARITH_EXPR TRANSFORM ---
+arith children count: 1
+  child[0] type: grammar::term content: '(1 + 2)' has_ast: YES
+
+--- ASSIGN_EXPR TRANSFORM ---
+assign children count: 3
+  child[0] type: grammar::variable content: 'x' has_ast: YES
+  child[1] type: grammar::assign_op content: ' = ' has_ast: NO
+  child[2] type: grammar::arith_expr content: '(1 + 2)' has_ast: YES
+
+--- PROGRAM TRANSFORM ---
+program (elist) children count: 1
+  child[0] type: grammar::assign_expr content: 'x = (1 + 2)' has_ast: YES
+ExpressionList size: 1
+
+=== END PARSE PEGTL ===
+
+===============================================================================
+All tests passed (8 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Parse Emit Three Address Code" end time: Apr 22 14:27 UTC
+"Parse Emit Three Address Code" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 22 14:27 UTC

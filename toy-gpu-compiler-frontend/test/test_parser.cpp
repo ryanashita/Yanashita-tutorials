@@ -227,3 +227,28 @@ TEST_CASE("Parse Assignment Variable Addition Reassignment", "[parser][assignmen
     std::string print_res = my_root->ast->print_line(); 
     REQUIRE(print_res == "[x = 1,x = (x + x),x]");
 }
+
+// testing Integer, Arithmetic, and Variable parsing and three-address code generation
+TEST_CASE("Parse Emit Three Address Code", "[parser][three_address_code]") {
+    auto root = parse_pegtl("x = (1 + 2)"); 
+    REQUIRE(root);
+
+    REQUIRE(!root->children.empty()); 
+    my_ast_node* my_root = static_cast<my_ast_node*>(root->children[0].get()); 
+    REQUIRE(my_root->ast != nullptr); 
+    my_root->ast->three_address_code(); 
+    std::vector tac_desired = my_root->ast->tac_lines; // get the tac_lines vector
+    std::vector tac_actual = 
+    {
+        "t1 <- 1",
+        "t2 <- 2",
+        "t3 <- t1 + t2",
+        "x <- t3"
+    };
+
+    // match size of desired and actual vector, and check they are equal at each index
+    REQUIRE(tac_desired.size() == tac_actual.size());
+    for (size_t i = 0; i < tac_desired.size(); ++i) {
+        REQUIRE(tac_desired[i] == tac_actual[i]); 
+    }
+}

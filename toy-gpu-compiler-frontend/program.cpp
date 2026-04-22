@@ -59,8 +59,10 @@ int main(int argc, char* argv[]) {
             // for (const auto& [name,expr] : program_node->ast->env) {
             //     std::cout << name << " -> " << expr->print_expr() << std::endl;
             // }
-
-            program_node->ast->three_address_code(); 
+            program_node->ast->three_address_code();
+            for (const auto& tac : program_node->ast->tac_lines) {
+                std::cout << tac << "\n"; 
+            }
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
