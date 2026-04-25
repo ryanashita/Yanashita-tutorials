@@ -14,6 +14,8 @@ public:
     static inline std::unordered_map<std::string, int> expr_to_temp; // stores assigned values to remove redundancy
     static inline int temp_counter = 0; // # of temp variables in TAC, keeps track and also makes it easy to name
     int temp_id = -1; 
+    static inline std::unordered_map<std::string, int> var_version; 
+
 
     virtual ~Expression() = default; 
 
@@ -34,6 +36,11 @@ public:
     static int new_temp() {
         return ++temp_counter; 
         // TODO: may need to add debugging and tests
+    }
+
+    static std::string get_var_version(const std::string& var) {
+        int version = ++var_version[var]; 
+        return var + std::to_string(version); 
     }
 }; 
 
@@ -169,7 +176,7 @@ public:
     }
 
     std::string get_expression_key() const override {
-        return varname; 
+        return varname + std::to_string(Expression::var_version[varname]); 
     }
 
     void three_address_code() override {
@@ -180,7 +187,13 @@ public:
             return; 
         }
         temp_id = new_temp(); 
-        std::string tac = "t" + std::to_string(temp_id) + " <- "  + varname; 
+
+        // TODO check the logic on this 
+        if (Expression::var_version.find(varname) == var_version.end()) {
+            return;
+        }
+
+        std::string tac = "t" + std::to_string(temp_id) + " <- "  + varname + std::to_string(Expression::var_version[varname]); 
         Expression::tac_lines.push_back(tac);
         Expression::expr_to_temp[key] = temp_id; 
     }
@@ -225,8 +238,8 @@ public:
         }
         temp_id = it->second; 
         // don't return here, need to save the temp_id and use it as rvalue below
-
-        std::string tac1 = var + " <- " + "t" + std::to_string(temp_id); 
+        std::string new_ssa_name = Expression::get_var_version(var);
+        std::string tac1 = new_ssa_name + " <- " + "t" + std::to_string(temp_id); 
         Expression::tac_lines.push_back(tac1);
         temp_id = expr->temp_id; 
     } 
