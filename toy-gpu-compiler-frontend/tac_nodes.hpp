@@ -73,12 +73,13 @@ public:
         };
         std::string op_str = ""; 
         switch(_op) {
-            case TACOp::ADD: op_str = " + "; break; 
-            case TACOp::SUB: op_str = " - "; break; 
-            case TACOp::MUL: op_str = " * "; break; 
-            case TACOp::DIV: op_str = " / "; break; 
+            case TACOp::ADD: op_str = "+"; break; 
+            case TACOp::SUB: op_str = "-"; break; 
+            case TACOp::MUL: op_str = "*"; break; 
+            case TACOp::DIV: op_str = "/"; break; 
         }
-        return _dest.name() + " <- " + operand_to_str(_operand1) + " " + op_str + " " + operand_to_str(_operand2); 
+
+        return _dest.name() + " <- " + operand_to_str(_operand1) + " " + op_str + " " +operand_to_str(_operand2); 
     }
 };
 

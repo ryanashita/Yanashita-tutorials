@@ -167,7 +167,7 @@ public:
             case '*': ope = TACOp::MUL; break; 
             case '/': ope = TACOp::DIV; break; 
         }
-        auto tac_binary = std::make_unique<TACBinaryOp>(Temp{temp_id}, TACVariable{std::to_string(left->temp_id)}, TACVariable{std::to_string(right->temp_id)}, ope);
+        auto tac_binary = std::make_unique<TACBinaryOp>(Temp{temp_id}, Temp{left->temp_id}, Temp{right->temp_id}, ope);
         Expression::tac_nodes.push_back(std::move(tac_binary)); 
 
         Expression::expr_to_temp[key] = temp_id; 
