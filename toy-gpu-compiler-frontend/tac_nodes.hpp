@@ -17,10 +17,10 @@ struct Temp {
     int identifer; 
     std::string name() const {
         return "t" + std::to_string(identifer); 
-    }    
+    }
 };
 
-struct Variable {
+struct TACVariable {
     std::string varname; 
 };
 
@@ -28,17 +28,18 @@ struct Constant {
     int value; 
 };
 
-using Operand = std::variant<Temp, Variable, Constant>; 
+using Operand = std::variant<Temp, TACVariable, Constant>; 
 
 // base class 
 class TACNode {
 public: 
+    TACNode() = default; 
     virtual ~TACNode() = default; 
-    virtual std::string to_string() const = 0; 
+    virtual std::string to_string() const = 0;
 };
 
 // just constant
-class TACConstant : TACNode {
+class TACConstant : public TACNode {
 public: 
     Temp _dest; 
     Constant _constant; 
@@ -51,7 +52,7 @@ public:
 }; 
 
 // arithmetic 
-class TACBinaryOp : TACNode {
+class TACBinaryOp : public TACNode {
 public: 
     Temp _dest; 
     Operand _operand1; 
@@ -64,8 +65,8 @@ public:
         auto operand_to_str = [](const Operand& ope) -> std::string {
             if (std::holds_alternative<Temp>(ope)) {
                 return std::get<Temp>(ope).name(); 
-            } else if (std::holds_alternative<Variable>(ope)) {
-                return std::get<Variable>(ope).varname; 
+            } else if (std::holds_alternative<TACVariable>(ope)) {
+                return std::get<TACVariable>(ope).varname; 
             } else {
                 return std::to_string(std::get<Constant>(ope).value);    
             }
@@ -82,7 +83,28 @@ public:
 };
 
 // variable assignment
+class TACStore : public TACNode {
+public: 
+    TACVariable _dest_variable; 
+    Temp _temporary; 
 
-// integer, variable assignment, load, store
+    TACStore(TACVariable dvar, Temp temp) : _dest_variable{dvar}, _temporary{temp} {}; 
+
+    std::string to_string() const override {
+        return _dest_variable.varname + " <- " + _temporary.name(); 
+    }
+}; 
+
+class TACLoad : public TACNode {
+public: 
+    TACVariable _var;
+    Temp _dest_temp; 
+
+    TACLoad(TACVariable var, Temp temp) : _var{var}, _dest_temp{temp} {}; 
+
+    std::string to_string() const override {
+        return _dest_temp.name() + " <- " + _var.varname; 
+    }
+};
 
 #endif

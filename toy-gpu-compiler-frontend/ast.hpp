@@ -6,16 +6,18 @@
 #include <vector>
 #include <unordered_map>
 
+#include "tac_nodes.hpp"
+
 class Expression {
 public: 
     static inline std::unordered_map<std::string, std::unique_ptr<Expression>> env; // use inline keyword, applied to static members. allows initialization directly in header file
 
-    static inline std::vector<std::string> tac_lines; // three address code lines result
+    static inline std::vector<std::string> tac_lines; // three address code strings result
+    static inline std::vector<std::unique_ptr<TACNode>> tac_nodes; 
     static inline std::unordered_map<std::string, int> expr_to_temp; // stores assigned values to remove redundancy
     static inline int temp_counter = 0; // # of temp variables in TAC, keeps track and also makes it easy to name
     int temp_id = -1; 
     static inline std::unordered_map<std::string, int> var_version; 
-
 
     virtual ~Expression() = default; 
 
@@ -69,8 +71,14 @@ public:
             return;
         }
         temp_id = Expression::new_temp(); // create a new temp, i.e increment temp_counter
+
         std::string tac = "t" + std::to_string(temp_id) + " <- " + std::to_string(value); 
         Expression::tac_lines.push_back(tac);
+
+        std::cout << "integer TAC" << std::endl; 
+        auto tac_constant = std::make_unique<TACConstant>(Temp{temp_id}, Constant{value}); 
+        Expression::tac_nodes.push_back(std::move(tac_constant)); 
+
         Expression::expr_to_temp[get_expression_key()] = temp_id; 
     }
 
@@ -143,11 +151,25 @@ public:
         }
 
         temp_id = Expression::new_temp(); 
+
         std::string tac = "t" + std::to_string(temp_id) + " <- " + 
             "t" + std::to_string(left->temp_id) + " " + 
             op + " " + 
             "t" + std::to_string(right->temp_id); 
         Expression::tac_lines.push_back(tac);
+
+        std::cout << "arith TAC" << std::endl; 
+
+        TACOp ope;
+        switch(op) {
+            case '+': ope = TACOp::ADD; break; 
+            case '-': ope = TACOp::SUB; break; 
+            case '*': ope = TACOp::MUL; break; 
+            case '/': ope = TACOp::DIV; break; 
+        }
+        auto tac_binary = std::make_unique<TACBinaryOp>(Temp{temp_id}, TACVariable{std::to_string(left->temp_id)}, TACVariable{std::to_string(right->temp_id)}, ope);
+        Expression::tac_nodes.push_back(std::move(tac_binary)); 
+
         Expression::expr_to_temp[key] = temp_id; 
     }
 
@@ -195,6 +217,12 @@ public:
 
         std::string tac = "t" + std::to_string(temp_id) + " <- "  + varname + std::to_string(Expression::var_version[varname]); 
         Expression::tac_lines.push_back(tac);
+
+        std::cout << "variable TAC" << std::endl; 
+
+        auto tac_variable = std::make_unique<TACLoad>(TACVariable{varname + std::to_string(Expression::var_version[varname])}, Temp{temp_id});
+        Expression::tac_nodes.push_back(std::move(tac_variable)); 
+
         Expression::expr_to_temp[key] = temp_id; 
     }
 
@@ -241,6 +269,12 @@ public:
         std::string new_ssa_name = Expression::get_var_version(var);
         std::string tac1 = new_ssa_name + " <- " + "t" + std::to_string(temp_id); 
         Expression::tac_lines.push_back(tac1);
+
+        std::cout << "assignment TAC" << std::endl; 
+
+        auto tac_assignment = std::make_unique<TACStore>(TACVariable{new_ssa_name}, Temp{temp_id}); 
+        Expression::tac_nodes.push_back(std::move(tac_assignment)); 
+
         temp_id = expr->temp_id; 
     } 
 

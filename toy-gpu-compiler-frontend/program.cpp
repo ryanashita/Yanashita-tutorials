@@ -60,9 +60,22 @@ int main(int argc, char* argv[]) {
             //     std::cout << name << " -> " << expr->print_expr() << std::endl;
             // }
             program_node->ast->three_address_code();
+            std::cout << "\n--- THREE ADDRESS CODE LINES ---\n" << std::endl;
             for (const auto& tac : program_node->ast->tac_lines) {
                 std::cout << tac << "\n"; 
             }
+            std::cout << "\n--- THREE ADDRESS CODE NODES ---\n" << std::endl;
+            for (const auto& tac_node : program_node->ast->tac_nodes) {
+                std::cout << tac_node->to_string() << "\n"; 
+            }
+            // for (size_t i = 0; i < program_node->ast->tac_lines.size(); ++i) {
+            //     std::cout << program_node->ast->tac_lines[i] << " | " << "\n"; 
+            //     std::string line;
+            //     for (auto nodes : program_node->tac_nodes) {
+            //         line += program_node->ast->tac_nodes[j]->to_string(); 
+            //     }
+            //     std::cout << line << "\n"; 
+            // }
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }

@@ -385,4 +385,6 @@ CMakeFiles/compiler_tests.dir/parser.cpp.o: \
  /usr/include/c++/13/bits/hashtable.h \
  /usr/include/c++/13/bits/hashtable_policy.h \
  /usr/include/c++/13/bits/node_handle.h \
- /usr/include/c++/13/bits/erase_if.h
+ /usr/include/c++/13/bits/erase_if.h \
+ /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/tac_nodes.hpp \
+ /usr/include/c++/13/variant /usr/include/c++/13/format
