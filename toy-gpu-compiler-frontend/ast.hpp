@@ -12,7 +12,7 @@ class Expression {
 public: 
     static inline std::unordered_map<std::string, std::unique_ptr<Expression>> env; // use inline keyword, applied to static members. allows initialization directly in header file
 
-    static inline std::vector<std::string> tac_lines; // three address code strings result
+    // static inline std::vector<std::string> tac_lines; // three address code strings result
     static inline std::vector<std::unique_ptr<TACNode>> tac_nodes; 
     static inline std::unordered_map<std::string, int> expr_to_temp; // stores assigned values to remove redundancy
     static inline int temp_counter = 0; // # of temp variables in TAC, keeps track and also makes it easy to name
@@ -44,6 +44,13 @@ public:
         int version = ++var_version[var]; 
         return var + std::to_string(version); 
     }
+
+    static void print_three_address_code() {
+        std::cout << "\n=== GENERATE THREE ADDRESS CODE ===\n" << std::endl; 
+        for (const auto& tac_node : tac_nodes) {
+            std::cout << tac_node->to_string() << "\n"; 
+        }
+    }
 }; 
 
 class Integer : public Expression {
@@ -72,10 +79,9 @@ public:
         }
         temp_id = Expression::new_temp(); // create a new temp, i.e increment temp_counter
 
-        std::string tac = "t" + std::to_string(temp_id) + " <- " + std::to_string(value); 
-        Expression::tac_lines.push_back(tac);
+        // std::string tac = "t" + std::to_string(temp_id) + " <- " + std::to_string(value); 
+        // Expression::tac_lines.push_back(tac);
 
-        std::cout << "integer TAC" << std::endl; 
         auto tac_constant = std::make_unique<TACConstant>(Temp{temp_id}, Constant{value}); 
         Expression::tac_nodes.push_back(std::move(tac_constant)); 
 
@@ -152,13 +158,11 @@ public:
 
         temp_id = Expression::new_temp(); 
 
-        std::string tac = "t" + std::to_string(temp_id) + " <- " + 
-            "t" + std::to_string(left->temp_id) + " " + 
-            op + " " + 
-            "t" + std::to_string(right->temp_id); 
-        Expression::tac_lines.push_back(tac);
-
-        std::cout << "arith TAC" << std::endl; 
+        // std::string tac = "t" + std::to_string(temp_id) + " <- " + 
+        //     "t" + std::to_string(left->temp_id) + " " + 
+        //     op + " " + 
+        //     "t" + std::to_string(right->temp_id); 
+        // Expression::tac_lines.push_back(tac);
 
         TACOp ope;
         switch(op) {
@@ -174,7 +178,6 @@ public:
     }
 
     std::string print_expr(int indent = 0) const override {
-        // std::cout << "print arith" << std::endl; 
         return std::string(indent * 2,' ') + "Arithmetic(\n" + left->print_expr(indent + 1) + ",\n" + std::string(indent * 2 + 2,' ') + op + ",\n" + right->print_expr(indent + 1) + ")"; 
     }
 
@@ -215,10 +218,8 @@ public:
             return;
         }
 
-        std::string tac = "t" + std::to_string(temp_id) + " <- "  + varname + std::to_string(Expression::var_version[varname]); 
-        Expression::tac_lines.push_back(tac);
-
-        std::cout << "variable TAC" << std::endl; 
+        // std::string tac = "t" + std::to_string(temp_id) + " <- "  + varname + std::to_string(Expression::var_version[varname]); 
+        // Expression::tac_lines.push_back(tac);
 
         auto tac_variable = std::make_unique<TACLoad>(TACVariable{varname + std::to_string(Expression::var_version[varname])}, Temp{temp_id});
         Expression::tac_nodes.push_back(std::move(tac_variable)); 
@@ -267,10 +268,8 @@ public:
         temp_id = it->second; 
         // don't return here, need to save the temp_id and use it as rvalue below
         std::string new_ssa_name = Expression::get_var_version(var);
-        std::string tac1 = new_ssa_name + " <- " + "t" + std::to_string(temp_id); 
-        Expression::tac_lines.push_back(tac1);
-
-        std::cout << "assignment TAC" << std::endl; 
+        // std::string tac1 = new_ssa_name + " <- " + "t" + std::to_string(temp_id); 
+        // Expression::tac_lines.push_back(tac1);
 
         auto tac_assignment = std::make_unique<TACStore>(TACVariable{new_ssa_name}, Temp{temp_id}); 
         Expression::tac_nodes.push_back(std::move(tac_assignment)); 

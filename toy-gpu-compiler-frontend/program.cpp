@@ -10,26 +10,12 @@ namespace pegtl = tao::pegtl;
 
 // g++ parser.cpp program.cpp -std=c++17 -O2 -o program
 
-/*
-Working: 
-    (-1+5)+(2+(+3)); 
-	[1,2,3,4,5]; 
-	(-1  + 5) +  (2+ +3  );
-    x = 1+1+1-1; 
-    x = 1+1+1-1; (5 + 5); 3;
-    [1,2];
-    [1,2]; [3,4];
-    (-1  + 5) +  (2+ +3  ); [1,2];
-    x = 1; [3,3,3]; 1  + (-2);
-    x = [1,2,3,4];
-In progress:
-*/
-
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " \"<expression>\"" << std::endl;
         return 1; 
     }
+    // parse input using taocpp/PEGTL parser
     std::string input = argv[1]; 
     auto root = parse_pegtl(input); 
 
@@ -49,37 +35,30 @@ int main(int argc, char* argv[]) {
 
         if (program_node->ast) {
             std::cout << "parse successful! original AST:\n"; 
-            std::cout << program_node->ast->print_expr(2) << std::endl;
+            
+            // The AST is already generated when the parse is complete, but to print it out print_expr class method has to be called
+            std::cout << "\n=== GENERATE AST ===\n" << std::endl; 
+            std::cout << program_node->ast->print_expr(2) << std::endl; 
 
-            // std::cout << "evaluated AST:\n"; 
-            // auto eval_result = program_node->ast->eval(); 
-            // std::cout << eval_result->print_expr(2) << std::endl;
+            /* Evaluate the AST (Interpreter)
+                std::cout << "evaluated AST:\n"; 
+                auto eval_result = program_node->ast->eval(); 
+                std::cout << eval_result->print_expr(2) << std::endl;
+            */
 
-            // std::cout << "env map pairs:\n"; // print out variables and the values they were initialized with
-            // for (const auto& [name,expr] : program_node->ast->env) {
-            //     std::cout << name << " -> " << expr->print_expr() << std::endl;
-            // }
+            /* Print out the variables in the global scope (Symbol table)
+                std::cout << "env map pairs:\n"; // print out variables and the values they were initialized with
+                for (const auto& [name,expr] : program_node->ast->env) {
+                    std::cout << name << " -> " << expr->print_expr() << std::endl;
+                }
+            */
+
+            // generate and print three address code IR
             program_node->ast->three_address_code();
-            std::cout << "\n--- THREE ADDRESS CODE LINES ---\n" << std::endl;
-            for (const auto& tac : program_node->ast->tac_lines) {
-                std::cout << tac << "\n"; 
-            }
-            std::cout << "\n--- THREE ADDRESS CODE NODES ---\n" << std::endl;
-            for (const auto& tac_node : program_node->ast->tac_nodes) {
-                std::cout << tac_node->to_string() << "\n"; 
-            }
-            // for (size_t i = 0; i < program_node->ast->tac_lines.size(); ++i) {
-            //     std::cout << program_node->ast->tac_lines[i] << " | " << "\n"; 
-            //     std::string line;
-            //     for (auto nodes : program_node->tac_nodes) {
-            //         line += program_node->ast->tac_nodes[j]->to_string(); 
-            //     }
-            //     std::cout << line << "\n"; 
-            // }
+            program_node->ast->print_three_address_code(); 
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
-
         /*
             TODO:
             - change the arguments: ./program "filename" value1, value2, value3, ...

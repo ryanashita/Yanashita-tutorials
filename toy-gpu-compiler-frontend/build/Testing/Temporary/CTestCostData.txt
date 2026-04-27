@@ -99,23 +99,71 @@ Parse 0 0
 Parse 0 0
 Parse 0 0
 Parse 0 0
-Parse Integer 1 0.00169098
-Parse Positive Integer 1 0.00148463
-Parse Negative Integer 1 0.00150262
-Parse Addition 1 0.00153591
-Parse Subtraction 1 0.00162143
-Parse Multiplication 1 0.00158214
-Parse Division 1 0.00166944
-Parse Parentheses Addition  1 0.0017836
-Parse Parentheses Whitespace Addition  1 0.00177345
-Parse Vector  1 0.0018397
-Parse Assignment  1 0.0018221
-Parse Addition Assignment  1 0.00197005
-Parse Vector Assignment  1 0.00200068
-Parse Addition Whitespace Vector 1 0.00208155
-Parse Vector Vector 1 0.00202746
-Parse Addition Assignment Addition Integer 1 0.00216982
-Parse Assignment Vector Addition 1 0.00208292
-Parse Assignment Variable Addition Reassignment 1 0.00214031
-Parse Emit Three Address Code 1 0.002052
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 1
+Parse 0 1
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse 0 0
+Parse Integer 1 0.00170812
+Parse Positive Integer 1 0.00152022
+Parse Negative Integer 1 0.00147419
+Parse Addition 1 0.00147379
+Parse Subtraction 1 0.00149049
+Parse Multiplication 1 0.00153982
+Parse Division 1 0.00154452
+Parse Parentheses Addition  1 0.00162907
+Parse Parentheses Whitespace Addition  1 0.00169821
+Parse Vector  1 0.00167151
+Parse Assignment  1 0.00168623
+Parse Addition Assignment  1 0.00186401
+Parse Vector Assignment  1 0.00181854
+Parse Addition Whitespace Vector 1 0.00206229
+Parse Vector Vector 1 0.00196268
+Parse Addition Assignment Addition Integer 1 0.00219431
+Parse Assignment Vector Addition 1 0.00226017
+Parse Assignment Variable Addition Reassignment 1 0.00178806
+Parse Emit Three Address Code Constant String 1 0.00155993
+Parse Emit Three Address Code Arithmetic 1 0.00150365
+Parse Emit Three Address Code Arithmetic 2 1 0.0015272
+Parse Emit Three Address Code Multiplication 1 0.00162142
+Parse Emit TAC Arithmetic Assignment 1 0.00166647
+Parse Emit TAC Complex 1 1 0.00171611
 ---
