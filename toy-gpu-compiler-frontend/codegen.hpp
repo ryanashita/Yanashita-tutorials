@@ -54,11 +54,11 @@ public:
         }
         _output << ")\n{";
 
-        
         // figure out a way I'm going to have global variables/parameters
         // need to be able to 
     }   
-
 }; 
+
+// TODO: liveness analysis here
 
 #endif
