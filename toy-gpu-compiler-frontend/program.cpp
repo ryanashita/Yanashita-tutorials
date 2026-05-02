@@ -1,8 +1,11 @@
 #include <iostream>
 #include <cstdio>
 #include <typeinfo>
+
 #include "parser.hpp"
 #include "ast.hpp"
+#include "liveness_analysis.hpp"
+
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/parse_tree.hpp>
 
@@ -56,6 +59,13 @@ int main(int argc, char* argv[]) {
             // generate and print three address code IR
             program_node->ast->three_address_code();
             program_node->ast->print_three_address_code(); 
+
+            // perform liveness analysis and output live ranges of all temps
+            LivenessAnalysis la;
+            la.analyze(program_node->ast->tac_nodes); 
+            for (auto& [key,value] : la.temp_to_live_range) {
+                std::cout << key << " - " << value.start << ":" << value.end << std::endl; 
+            }
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
