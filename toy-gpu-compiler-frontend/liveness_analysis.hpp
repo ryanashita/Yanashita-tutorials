@@ -24,6 +24,8 @@ class LivenessAnalysis {
 public: 
     std::unordered_map<int, LiveRange> temp_to_live_range; // use this when register allocating
 
+    std::vector<LivenessInfo> instruction_liveness; //liveness at each instruction i. not specific to temps 
+
     void analyze(const std::vector<std::unique_ptr<TACNode>>& tac_instructions) {
         size_t n = tac_instructions.size(); 
         instruction_liveness.resize(n); 
@@ -106,8 +108,6 @@ private:
         }
         return uses; 
     } 
-
-    std::vector<LivenessInfo> instruction_liveness; //liveness at each instruction i. not specific to temps 
 };
 
 #endif

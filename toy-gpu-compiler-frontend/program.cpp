@@ -66,6 +66,18 @@ int main(int argc, char* argv[]) {
             for (auto& [key,value] : la.temp_to_live_range) {
                 std::cout << key << " - " << value.start << ":" << value.end << std::endl; 
             }
+            for (auto& instr_live : la.instruction_liveness) {
+                std::cout << "Live before: [";
+                for (auto& before : instr_live.live_before) {
+                    std::cout << before << ",";
+                }
+                std::cout << "]" << std::endl;
+                std::cout << "Live after: [";
+                for (auto& after : instr_live.live_after) {
+                    std::cout << after << ",";
+                }
+                std::cout << "]" << std::endl;
+            }
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
