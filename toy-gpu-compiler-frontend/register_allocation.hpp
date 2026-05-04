@@ -65,6 +65,7 @@ class RegisterAllocation {
             for (auto& active_temp : _active_temps_in_window) {
                 LiveRange cur_temp_range = _live_ranges[active_temp]; 
                 if (cur_temp_range.end <= i) _active_temps_in_window.erase(active_temp); 
+                _temp_state[active_temp] = TempState::DEAD; 
             }
             // live_after is important here. add all non-duplicate temps to the current active temporaries (active temps need a register)
             // non-duplicate because a duplicate just means that the temp was live before and still remains alive at this instruction
@@ -99,10 +100,18 @@ class RegisterAllocation {
                 }
             }
 
-            // TODO: somewhere in the code, gotta remove values from registers if they aren't live anymore
+            // TODO: need to make sure temp state is updated. 
 
             std::unordered_map<int,int> i_instruction_registers;
             std::unordered_map<int,int> i_instruction_memory;
+
+            // remove values from registers if they aren't live anymore
+            AllocationTable prev_alloca = _allocations[i-1]; 
+            for (auto& [key,value] : prev_alloca.in_register) {
+                if (_temp_state[value] == TempState::DEAD) {
+                     prev_alloca.in_register.erase(key);
+                }
+            }
 
             // check if more actives than physical register available. if yes, must swap values in registers and spill
             // TODO: find a way to save that a spill occured here
@@ -115,7 +124,6 @@ class RegisterAllocation {
                     three-address code line 0, it is impossible for 
                     this to occur, and this it is ok to say i-1 below. 
                 */
-                AllocationTable prev_alloca = _allocations[i-1]; 
                 if (prev_alloca.in_register.size() > _avail_pregisters) std::exit; 
                 
 
