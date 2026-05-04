@@ -9,8 +9,8 @@
 #include <algorithm>
 
 struct AllocationTable {
-    std::vector<int> in_register;
-    std::vector<int> in_memory; 
+    std::unordered_map<int,int> in_register; // register#:temp_number
+    std::unordered_map<int,int> in_memory; // memory offset:temp_number
 };
 
 // potentially add max memory size
@@ -60,6 +60,7 @@ class RegisterAllocation {
         size_t i = 0; 
 
         while (i < _instructions.size()) {
+
             // remove all un-live temps from the active-temps set
             for (auto& active_temp : _active_temps_in_window) {
                 LiveRange cur_temp_range = _live_ranges[active_temp]; 
@@ -92,13 +93,16 @@ class RegisterAllocation {
          
                 }
                 if (needs_register) {
+                    // saving the iterator and not just temp 'after' bc have to confirm that 'after' wasn't a duplicate and does indeed need to be placed in a register
                     auto it = _active_temps_in_window.insert(after);
                     if (it.second) inserted_it = it.first;
                 }
             }
 
-            std::vector<int> i_instruction_registers;
-            std::vector<int> i_instruction_memory;
+            // TODO: somewhere in the code, gotta remove values from registers if they aren't live anymore
+
+            std::unordered_map<int,int> i_instruction_registers;
+            std::unordered_map<int,int> i_instruction_memory;
 
             // check if more actives than physical register available. if yes, must swap values in registers and spill
             // TODO: find a way to save that a spill occured here
@@ -112,45 +116,60 @@ class RegisterAllocation {
                     this to occur, and this it is ok to say i-1 below. 
                 */
                 AllocationTable prev_alloca = _allocations[i-1]; 
-                int longer_living_temp; 
+                if (prev_alloca.in_register.size() > _avail_pregisters) std::exit; 
+                
 
                 // TODO: should be a for loop to check which temp lives longer
                 // check if r1 or r2 temp lives longer
-                if (_live_ranges[prev_alloca.in_register[0]].end > _live_ranges[prev_alloca.in_register[1]].end) {
-                    longer_living_temp = prev_alloca.in_register[0];
-                } else {
-                    longer_living_temp = prev_alloca.in_register[1];
-                }
-                // TODO: store memory offset occured at instruction i; 
-                // save to memory
-                i_instruction_memory.push_back(longer_living_temp);
-                i_instruction_registers = prev_alloca.in_register;
-                // delete from the registers 
-                auto it = find(i_instruction_registers.begin(), i_instruction_registers.end(), longer_living_temp);
-                i_instruction_registers.erase(it); 
 
-                // figure out which register is the temp to insert into i_instruction_registers
-                i_instruction_registers.push_back(*inserted_it);
-                
+                int longest_living_temp = -1; 
+                int reg_being_modified; 
+                for (auto& [key,value] : prev_alloca.in_register) {
+                    if (_live_ranges[value].end > longest_living_temp) {
+                        longest_living_temp = value; 
+                        reg_being_modified = key;
+                    }
+                }
+
+                // save to memory
+                i_instruction_memory[_memory_offset] = longest_living_temp;
+                ++_memory_offset;
+        
+                // change the temp at the register that should be modified, to the inserted
+                i_instruction_registers = prev_alloca.in_register;
+                i_instruction_registers[reg_being_modified] = *inserted_it;
+
+                // i_instruction_registers.assign(prev_alloca.in_register.begin(), prev_alloca.in_register.end());
+                // auto it = find(i_instruction_registers.begin(), i_instruction_registers.end(), longest_living_temp);
+                // i_instruction_registers.erase(it); 
+
                 // create the allocation table for this instruction i
                 _allocations.push_back(AllocationTable{.in_register = i_instruction_registers, .in_memory = i_instruction_memory});
             } else {
                 // simply add to instruction registers and memory
                 if (i == 0) {
                     // make a vector from a set
-                    i_instruction_registers.assign(_active_temps_in_window.begin(), _active_temps_in_window.end()); 
+                    int j = 0; 
+                    for (auto& temp : _active_temps_in_window) {
+                        i_instruction_registers[j] = temp; 
+                        ++j;
+                    }
                     _allocations.push_back(AllocationTable{.in_register = i_instruction_registers, .in_memory = {}}); 
                 } else {
                     AllocationTable prev_alloca = _allocations[i-1]; 
 
+                    for (size_t k = 0; k < _avail_pregisters; ++k) {
+                        if (prev_alloca.in_register.find(k) == prev_alloca.in_register.end()) {
+                            prev_alloca.in_register[k] = *inserted_it;
+                        }
+                    }
                 }
             }
-            // somewhere erase the temp we put in memory from the active_temps_in_registers
+            // TODO: somewhere erase the temp we put in memory from the active_temps_in_registers
             ++i;
         }
     }
     // use -1 to indicate a register is empty
-
 };
 
 #endif
