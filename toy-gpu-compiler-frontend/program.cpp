@@ -5,6 +5,7 @@
 #include "parser.hpp"
 #include "ast.hpp"
 #include "liveness_analysis.hpp"
+#include "register_allocation.hpp"
 
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/parse_tree.hpp>
@@ -78,6 +79,23 @@ int main(int argc, char* argv[]) {
                 }
                 std::cout << "]" << std::endl;
             }
+            RegisterAllocation alloc(2,program_node->ast->tac_nodes,la.temp_to_live_range,la.instruction_liveness);
+            alloc.allocate(); 
+            int count = 1; 
+            for (auto& [spill, registers, memory] : alloc._allocations) {
+                std::cout << "line: " << count; 
+                ++count; 
+                std::cout << "\nregisters -> {";
+                for (auto& [reg,temp] : registers) {
+                    std::cout << "[" << reg << ":" << temp << "];";
+                }
+                std::cout << "}\nmemory -> {";
+                for (auto& [mem,temp] : memory) {
+                    std::cout << "[" << mem << ":" << temp << "];";
+                }
+                std::cout << "}";
+            }  
+            
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }

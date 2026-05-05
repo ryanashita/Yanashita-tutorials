@@ -391,4 +391,5 @@ CMakeFiles/program.dir/program.cpp.o: \
  /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/liveness_analysis.hpp \
  /usr/include/c++/13/set /usr/include/c++/13/bits/stl_tree.h \
  /usr/include/c++/13/bits/stl_set.h \
- /usr/include/c++/13/bits/stl_multiset.h
+ /usr/include/c++/13/bits/stl_multiset.h \
+ /home/rick/Yanashita-tutorials/toy-gpu-compiler-frontend/register_allocation.hpp

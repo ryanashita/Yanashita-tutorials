@@ -9,49 +9,20 @@
 #include <algorithm>
 
 struct AllocationTable {
+    bool spill_happened;
     std::unordered_map<int,int> in_register; // register#:temp_number
     std::unordered_map<int,int> in_memory; // memory offset:temp_number
 };
 
 // potentially add max memory size
 class RegisterAllocation {
-    int _avail_pregisters; // this is the # of physical registers available, but also the size of the sliding window in the linear scan algorithm
-    int _memory_offset = 0; // will be used in instruction selection
-    std::set<int> _active_temps_in_window; // if size of this > _avail_pregisters then spill
-    // std::vector<int> _allocation_table{-1,-1}; 
+public: 
     std::vector<AllocationTable> _allocations; // only DS that has to be modified/ added to
-    std::vector<std::unique_ptr<TACNode>> _instructions; 
-    std::unordered_map<int, LiveRange> _live_ranges; 
-    std::vector<LivenessInfo> _live_info_at_instruction;
 
-    enum class TempState {
-        NEW,
-        IN_REGISTER,
-        IN_MEMORY,
-        DEAD
-    };
-
-    std::unordered_map<int, TempState> _temp_state; 
-    
-    RegisterAllocation(int n, const std::vector<std::unique_ptr<TACNode>>& tac_nodes, const std::unordered_map<int, LiveRange> ranges, std::vector<LivenessInfo> live_info_at_instruction) : _avail_pregisters{n}, _instructions{tac_nodes}, _live_ranges{ranges}, _live_info_at_instruction{live_info_at_instruction} {};
-
-    bool is_used_at_instruction(TACNode* instr, int temp) {
-        if (auto* tac_binary = dynamic_cast<TACBinaryOp*>(instr)) {
-            auto check_operand = [temp](const Operand& op) -> bool {
-                if (std::holds_alternative<Temp>(op)) {
-                    return std::get<Temp>(op).identifer == temp; 
-                }
-                return false; 
-            };
-            return check_operand(tac_binary->_operand1) || check_operand(tac_binary->_operand2); 
-        } 
-
-        if (auto* tac_store = dynamic_cast<TACStore*>(instr)) {
-            return tac_store->_temporary.identifer == temp; 
-        } 
-    }
+    RegisterAllocation(int n, const std::vector<std::unique_ptr<TACNode>>& tac_nodes, const std::unordered_map<int, LiveRange>& ranges, std::vector<LivenessInfo>& live_info_at_instruction) : _avail_pregisters{n}, _instructions{tac_nodes}, _live_ranges{ranges}, _live_info_at_instruction{live_info_at_instruction} {};
 
     void allocate() {
+        std::cout << "debug line 25" << std::endl; 
         // _active_temps_in_window is empty
         // _avail_pregisters = 2, also n
         // _memory_offset = 0; 
@@ -60,10 +31,10 @@ class RegisterAllocation {
         size_t i = 0; 
 
         while (i < _instructions.size()) {
-
+            std::cout << "debug line 34: instruction " << i << std::endl; 
             // remove all un-live temps from the active-temps set
             for (auto& active_temp : _active_temps_in_window) {
-                LiveRange cur_temp_range = _live_ranges[active_temp]; 
+                LiveRange cur_temp_range = _live_ranges.at(active_temp); 
                 if (cur_temp_range.end <= i) _active_temps_in_window.erase(active_temp); 
                 _temp_state[active_temp] = TempState::DEAD; 
             }
@@ -72,6 +43,7 @@ class RegisterAllocation {
             // only one temp gets added to the active temp window at a time bc only one temp is created in a line
             std::set<int>::iterator inserted_it; 
             for (auto& after : _live_info_at_instruction[i].live_after) {
+
                 bool needs_register = false; 
 
                 switch (_temp_state[after]) {
@@ -99,19 +71,35 @@ class RegisterAllocation {
                     if (it.second) inserted_it = it.first;
                 }
             }
-
-            // TODO: need to make sure temp state is updated. 
+            std::cout << "debug line 74" << std::endl; 
 
             std::unordered_map<int,int> i_instruction_registers;
             std::unordered_map<int,int> i_instruction_memory;
 
-            // remove values from registers if they aren't live anymore
-            AllocationTable prev_alloca = _allocations[i-1]; 
+            // if the first instruction, don't need to / can't look back at previous allocation
+            if (i == 0) {
+                std::cout << "debug line 81" << std::endl; 
+                int j = 0; 
+                for (auto& temp : _active_temps_in_window) {
+                    i_instruction_registers[j] = temp; 
+                    ++j;
+                }
+                _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = i_instruction_registers, .in_memory = {}}); 
+                ++i;
+                continue;
+            }
+            std::cout << "debug line 91" << std::endl; 
+            // the rest of the logic in the function is for instructions i > 0. 
+
+            // only add values from registers if they are still live
+            AllocationTable prev_alloca = _allocations[i-1];
+            std::cout << "debug line 94" << std::endl;
             for (auto& [key,value] : prev_alloca.in_register) {
-                if (_temp_state[value] == TempState::DEAD) {
-                     prev_alloca.in_register.erase(key);
+                if (_temp_state[value] != TempState::DEAD) {
+                     i_instruction_registers[key] = value; 
                 }
             }
+            std::cout << "debug line 100" << std::endl; 
 
             // check if more actives than physical register available. if yes, must swap values in registers and spill
             // TODO: find a way to save that a spill occured here
@@ -126,21 +114,19 @@ class RegisterAllocation {
                 */
                 if (prev_alloca.in_register.size() > _avail_pregisters) std::exit; 
                 
-
-                // TODO: should be a for loop to check which temp lives longer
                 // check if r1 or r2 temp lives longer
-
                 int longest_living_temp = -1; 
                 int reg_being_modified; 
                 for (auto& [key,value] : prev_alloca.in_register) {
-                    if (_live_ranges[value].end > longest_living_temp) {
+                    if (_live_ranges.at(value).end > longest_living_temp) {
                         longest_living_temp = value; 
                         reg_being_modified = key;
                     }
                 }
 
-                // save to memory
+                // save to memory 
                 i_instruction_memory[_memory_offset] = longest_living_temp;
+                _temp_state[longest_living_temp] = TempState::IN_MEMORY;
                 ++_memory_offset;
         
                 // change the temp at the register that should be modified, to the inserted
@@ -152,7 +138,7 @@ class RegisterAllocation {
                 // i_instruction_registers.erase(it); 
 
                 // create the allocation table for this instruction i
-                _allocations.push_back(AllocationTable{.in_register = i_instruction_registers, .in_memory = i_instruction_memory});
+                _allocations.push_back(AllocationTable{.spill_happened = true,.in_register = i_instruction_registers, .in_memory = i_instruction_memory});
             } else {
                 // simply add to instruction registers and memory
                 if (i == 0) {
@@ -162,7 +148,7 @@ class RegisterAllocation {
                         i_instruction_registers[j] = temp; 
                         ++j;
                     }
-                    _allocations.push_back(AllocationTable{.in_register = i_instruction_registers, .in_memory = {}}); 
+                    _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = i_instruction_registers, .in_memory = {}}); 
                 } else {
                     AllocationTable prev_alloca = _allocations[i-1]; 
 
@@ -171,13 +157,48 @@ class RegisterAllocation {
                             prev_alloca.in_register[k] = *inserted_it;
                         }
                     }
+                    _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = prev_alloca.in_register, .in_memory = {}}); 
                 }
             }
-            // TODO: somewhere erase the temp we put in memory from the active_temps_in_registers
             ++i;
         }
     }
-    // use -1 to indicate a register is empty
+
+private:
+    int _avail_pregisters; // this is the # of physical registers available, but also the size of the sliding window in the linear scan algorithm
+    int _memory_offset = 0; // will be used in instruction selection
+    std::set<int> _active_temps_in_window; // if size of this > _avail_pregisters then spill
+    // std::vector<int> _allocation_table{-1,-1}; 
+    
+    const std::vector<std::unique_ptr<TACNode>>& _instructions; 
+    const std::unordered_map<int, LiveRange>& _live_ranges; 
+    const std::vector<LivenessInfo>& _live_info_at_instruction;
+
+    enum class TempState {
+        IN_REGISTER, // the default
+        IN_MEMORY, 
+        DEAD
+    };
+
+    std::unordered_map<int, TempState> _temp_state; 
+    
+    bool is_used_at_instruction(TACNode* instr, int temp) {
+        if (auto* tac_binary = dynamic_cast<TACBinaryOp*>(instr)) {
+            auto check_operand = [temp](const Operand& op) -> bool {
+                if (std::holds_alternative<Temp>(op)) {
+                    return std::get<Temp>(op).identifer == temp; 
+                }
+                return false; 
+            };
+            return check_operand(tac_binary->_operand1) || check_operand(tac_binary->_operand2); 
+        } 
+
+        if (auto* tac_store = dynamic_cast<TACStore*>(instr)) {
+            return tac_store->_temporary.identifer == temp; 
+        }
+        
+        return false; 
+    }
 };
 
 #endif
