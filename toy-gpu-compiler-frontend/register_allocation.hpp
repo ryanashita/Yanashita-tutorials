@@ -8,28 +8,44 @@
 #include <unordered_map>
 #include <algorithm>
 
+// temps, if spilled, are stored in PTX local memory
 struct AllocationTable {
     bool spill_happened;
     std::unordered_map<int,int> in_register; // register#:temp_number
     std::unordered_map<int,int> in_memory; // memory offset:temp_number
 };
 
-// potentially add max memory size
+// user-defined variables are stored in PTX global memory
+struct VariableStorage { //key should be the variable name, excluding the number at the end
+    std::unordered_map<std::string, int> var_to_address;
+};
+
 class RegisterAllocation {
 public: 
-    std::vector<AllocationTable> _allocations; // only DS that has to be modified/ added to
+    std::vector<AllocationTable> _allocations; // register allocation & spills for temps
+    std::vector<VariableStorage> _variable_storage; // variable storage
 
-    RegisterAllocation(int n, const std::vector<std::unique_ptr<TACNode>>& tac_nodes, const std::unordered_map<int, LiveRange>& ranges, std::vector<LivenessInfo>& live_info_at_instruction, const std::unordered_map<std::string, LiveRange>& var_ranges) : _avail_pregisters{n}, _instructions{tac_nodes}, _live_ranges{ranges}, _live_info_at_instruction{live_info_at_instruction}, _var_live_ranges{var_ranges} {};
+    RegisterAllocation(
+        int n, 
+        const std::vector<std::unique_ptr<TACNode>>& tac_nodes, 
+        const std::unordered_map<int, LiveRange>& ranges, 
+        std::vector<LivenessInfo>& live_info_at_instruction, 
+        const std::unordered_map<std::string, LiveRange>& var_ranges) 
+            : _avail_pregisters{n}, 
+            _instructions{tac_nodes}, // reg alloc needs to know what each tac node/line does. for arithmetic,load,store
+            _live_ranges{ranges}, // live ranges to compute
+            _live_info_at_instruction{live_info_at_instruction}, 
+            _var_live_ranges{var_ranges} 
+    {};
 
     void allocate() {
-        std::cout << "debug line 25" << std::endl; 
-        // _active_temps_in_window is empty
-        // _avail_pregisters = 2, also n
-        // _memory_offset = 0; 
+        // fill in _variable_storage
+        for (auto& [key,value] : _var_live_ranges) {
+            // TODO
+        }
 
-        // push_back to _active_temps_in_window
+
         size_t i = 0; 
-
         while (i < _instructions.size()) {
             std::cout << "debug line 34: instruction " << i << std::endl; 
 
@@ -46,18 +62,18 @@ public:
                 }
             }
 
-            // remove dead variables from active var set
-            for (auto it = _active_vars_in_window.begin(); it != _active_vars_in_window.end(); ) {
-                std::string active_var = *it;
-                LiveRange cur_temp_range = _var_live_ranges.at(active_var);
+            // // remove dead variables from active var set
+            // for (auto it = _active_vars_in_window.begin(); it != _active_vars_in_window.end(); ) {
+            //     std::string active_var = *it;
+            //     LiveRange cur_temp_range = _var_live_ranges.at(active_var);
                 
-                if (cur_temp_range.end <= i) {
-                    _var_state[active_var] = TempState::DEAD;
-                    it = _active_vars_in_window.erase(it);
-                } else {
-                    ++it;
-                }
-            }
+            //     if (cur_temp_range.end <= i) {
+            //         _var_state[active_var] = TempState::DEAD;
+            //         it = _active_vars_in_window.erase(it);
+            //     } else {
+            //         ++it;
+            //     }
+            // }
 
             std::cout << "debug line 41" << std::endl; 
             // live_after is important here. add all non-duplicate temps to the current active temporaries (active temps need a register)
@@ -96,24 +112,24 @@ public:
             }
 
             // add live vars from liveness
-            for (const auto& after_var : _live_info_at_instruction[i].live_var_after) {
-                bool needs_register = false; 
-                switch (_var_state[after_var]) {
-                    case TempState::IN_MEMORY:
-                        if (is_var_used_at_instruction(_instructions[i].get(),after_var)) {
-                            needs_register = true;
-                            _var_state[after_var] = TempState::IN_REGISTER;
-                        }
-                        break;
-                    default:
-                        needs_register = true; 
-                        _var_state[after_var] = TempState::IN_REGISTER;
-                        break; 
-                }
-                if (needs_register) {
-                    _active_vars_in_window.insert(after_var); // doesn't mean all variables. It means variables that need to be used in this instruction, so space has to be allocated 
-                }
-            }
+            // for (const auto& after_var : _live_info_at_instruction[i].live_var_after) {
+            //     bool needs_register = false; 
+            //     switch (_var_state[after_var]) {
+            //         case TempState::IN_MEMORY:
+            //             if (is_var_used_at_instruction(_instructions[i].get(),after_var)) {
+            //                 needs_register = true;
+            //                 _var_state[after_var] = TempState::IN_REGISTER;
+            //             }
+            //             break;
+            //         default:
+            //             needs_register = true; 
+            //             _var_state[after_var] = TempState::IN_REGISTER;
+            //             break; 
+            //     }
+            //     if (needs_register) {
+            //         _active_vars_in_window.insert(after_var); // doesn't mean all variables. It means variables that need to be used in this instruction, so space has to be allocated 
+            //     }
+            // }
             std::cout << "debug line 74" << std::endl; 
 
             std::unordered_map<int,int> i_instruction_registers;
@@ -144,18 +160,18 @@ public:
             }
 
             // only add values from memory if they are still live
-            for (auto& [offset,temp] : prev_alloca.in_memory) {
-                if (_temp_state[temp] != TempState::DEAD) {
-                     i_instruction_memory[offset] = temp; 
-                }
-            }
+            // for (auto& [offset,temp] : prev_alloca.in_memory) {
+            //     if (_temp_state[temp] != TempState::DEAD) {
+            //          i_instruction_memory[offset] = temp; 
+            //     }
+            // }
 
             std::cout << "debug line 100" << std::endl; 
 
             // check if more actives than physical register available. if yes, must swap values in registers and spill
             // TODO: find a way to save that a spill occured here
             // example: if there are 3 temps looking for registers and two physical registers available, 1 temp has to be spilled to memory. 
-            if (_active_temps_in_window.size() + _active_vars_in_window.size() > _avail_pregisters) {
+            if (_active_temps_in_window.size() > _avail_pregisters) {
                 /* 
                     the logic in this conditional only runs if 
                     there are more temps that need registers than 

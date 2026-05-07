@@ -102,13 +102,13 @@ int main(int argc, char* argv[]) {
             alloc.allocate(); 
             int count = 1; 
             for (auto& [spill, registers, memory] : alloc._allocations) {
-                std::cout << "line: " << count; 
+                std::cout << "line " << count << ": "; 
                 ++count; 
-                std::cout << "\nregisters -> {";
+                std::cout << "registers -> {";
                 for (auto& [reg,temp] : registers) {
                     std::cout << "[" << reg << ":" << temp << "];";
                 }
-                std::cout << "}\nmemory -> {";
+                std::cout << "}, memory -> {";
                 for (auto& [mem,temp] : memory) {
                     std::cout << "[" << mem << ":" << temp << "];";
                 }
