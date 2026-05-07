@@ -32,12 +32,21 @@ public:
 
         while (i < _instructions.size()) {
             std::cout << "debug line 34: instruction " << i << std::endl; 
-            // remove all un-live temps from the active-temps set
-            for (auto& active_temp : _active_temps_in_window) {
-                LiveRange cur_temp_range = _live_ranges.at(active_temp); 
-                if (cur_temp_range.end <= i) _active_temps_in_window.erase(active_temp); 
-                _temp_state[active_temp] = TempState::DEAD; 
+
+            // remove all un-live temps from the active-temps set, using iterator-based loop
+            for (auto it = _active_temps_in_window.begin(); it != _active_temps_in_window.end(); ) {
+                int active_temp = *it;
+                LiveRange cur_temp_range = _live_ranges.at(active_temp);
+                
+                if (cur_temp_range.end <= i) {
+                    _temp_state[active_temp] = TempState::DEAD;
+                    it = _active_temps_in_window.erase(it);
+                } else {
+                    ++it;
+                }
             }
+
+            std::cout << "debug line 41" << std::endl; 
             // live_after is important here. add all non-duplicate temps to the current active temporaries (active temps need a register)
             // non-duplicate because a duplicate just means that the temp was live before and still remains alive at this instruction
             // only one temp gets added to the active temp window at a time bc only one temp is created in a line
@@ -52,6 +61,7 @@ public:
                         break;
                     case TempState::IN_MEMORY:
                         // check if this temp 'after' is needed in this instruction    
+                        std::cout << "check if temp " << after << " is needed in instruction" << i << std::endl; 
                         if (is_used_at_instruction(_instructions[i].get(), after)) {
                             needs_register = true; // triggers a load
                             _temp_state[after] = TempState::IN_REGISTER;
@@ -99,6 +109,14 @@ public:
                      i_instruction_registers[key] = value; 
                 }
             }
+
+            // only add values from memory if they are still live
+            for (auto& [offset,temp] : prev_alloca.in_memory) {
+                if (_temp_state[temp] != TempState::DEAD) {
+                     i_instruction_memory[offset] = temp; 
+                }
+            }
+
             std::cout << "debug line 100" << std::endl; 
 
             // check if more actives than physical register available. if yes, must swap values in registers and spill
@@ -128,6 +146,8 @@ public:
                 i_instruction_memory[_memory_offset] = longest_living_temp;
                 _temp_state[longest_living_temp] = TempState::IN_MEMORY;
                 ++_memory_offset;
+                // remove spilled temp from active temps needing registers
+                _active_temps_in_window.erase(longest_living_temp);
         
                 // change the temp at the register that should be modified, to the inserted
                 i_instruction_registers = prev_alloca.in_register;
@@ -141,24 +161,14 @@ public:
                 _allocations.push_back(AllocationTable{.spill_happened = true,.in_register = i_instruction_registers, .in_memory = i_instruction_memory});
             } else {
                 // simply add to instruction registers and memory
-                if (i == 0) {
-                    // make a vector from a set
-                    int j = 0; 
-                    for (auto& temp : _active_temps_in_window) {
-                        i_instruction_registers[j] = temp; 
-                        ++j;
-                    }
-                    _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = i_instruction_registers, .in_memory = {}}); 
-                } else {
-                    AllocationTable prev_alloca = _allocations[i-1]; 
+                AllocationTable prev_alloca = _allocations[i-1]; 
 
-                    for (size_t k = 0; k < _avail_pregisters; ++k) {
-                        if (prev_alloca.in_register.find(k) == prev_alloca.in_register.end()) {
-                            prev_alloca.in_register[k] = *inserted_it;
-                        }
+                for (size_t k = 0; k < _avail_pregisters; ++k) {
+                    if (prev_alloca.in_register.find(k) == prev_alloca.in_register.end()) {
+                        prev_alloca.in_register[k] = *inserted_it;
                     }
-                    _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = prev_alloca.in_register, .in_memory = {}}); 
                 }
+                _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = prev_alloca.in_register, .in_memory = prev_alloca.in_memory}); 
             }
             ++i;
         }

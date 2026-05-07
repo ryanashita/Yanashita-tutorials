@@ -64,6 +64,8 @@ int main(int argc, char* argv[]) {
             // perform liveness analysis and output live ranges of all temps
             LivenessAnalysis la;
             la.analyze(program_node->ast->tac_nodes); 
+            std::cout << "\n=== LIVENESS ANALYSIS ===\n" << std::endl;
+            std::cout << "Temps\n"; 
             for (auto& [key,value] : la.temp_to_live_range) {
                 std::cout << key << " - " << value.start << ":" << value.end << std::endl; 
             }
@@ -79,23 +81,39 @@ int main(int argc, char* argv[]) {
                 }
                 std::cout << "]" << std::endl;
             }
-            RegisterAllocation alloc(2,program_node->ast->tac_nodes,la.temp_to_live_range,la.instruction_liveness);
-            alloc.allocate(); 
-            int count = 1; 
-            for (auto& [spill, registers, memory] : alloc._allocations) {
-                std::cout << "line: " << count; 
-                ++count; 
-                std::cout << "\nregisters -> {";
-                for (auto& [reg,temp] : registers) {
-                    std::cout << "[" << reg << ":" << temp << "];";
+            std::cout << "Vars\n";
+            for (auto& [key,value] : la.var_to_live_range) {
+                std::cout << key << " - " << value.start << ":" << value.end << std::endl; 
+            }
+            for (auto& instr_live : la.instruction_liveness) {
+                std::cout << "Live before: [";
+                for (auto& before : instr_live.live_var_before) {
+                    std::cout << before << ",";
                 }
-                std::cout << "}\nmemory -> {";
-                for (auto& [mem,temp] : memory) {
-                    std::cout << "[" << mem << ":" << temp << "];";
+                std::cout << "]" << std::endl;
+                std::cout << "Live after: [";
+                for (auto& after : instr_live.live_var_after) {
+                    std::cout << after << ",";
                 }
-                std::cout << "}";
-            }  
-            
+                std::cout << "]" << std::endl;
+            }
+            // perform register allocation
+            // RegisterAllocation alloc(2,program_node->ast->tac_nodes,la.temp_to_live_range,la.instruction_liveness);
+            // alloc.allocate(); 
+            // int count = 1; 
+            // for (auto& [spill, registers, memory] : alloc._allocations) {
+            //     std::cout << "line: " << count; 
+            //     ++count; 
+            //     std::cout << "\nregisters -> {";
+            //     for (auto& [reg,temp] : registers) {
+            //         std::cout << "[" << reg << ":" << temp << "];";
+            //     }
+            //     std::cout << "}\nmemory -> {";
+            //     for (auto& [mem,temp] : memory) {
+            //         std::cout << "[" << mem << ":" << temp << "];";
+            //     }
+            //     std::cout << "}\n";
+            // }  
         } else {
             std::cout << "AST grammar::program root node is null" << std::endl; 
         }
