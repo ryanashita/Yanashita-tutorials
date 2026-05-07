@@ -19,7 +19,7 @@ class RegisterAllocation {
 public: 
     std::vector<AllocationTable> _allocations; // only DS that has to be modified/ added to
 
-    RegisterAllocation(int n, const std::vector<std::unique_ptr<TACNode>>& tac_nodes, const std::unordered_map<int, LiveRange>& ranges, std::vector<LivenessInfo>& live_info_at_instruction) : _avail_pregisters{n}, _instructions{tac_nodes}, _live_ranges{ranges}, _live_info_at_instruction{live_info_at_instruction} {};
+    RegisterAllocation(int n, const std::vector<std::unique_ptr<TACNode>>& tac_nodes, const std::unordered_map<int, LiveRange>& ranges, std::vector<LivenessInfo>& live_info_at_instruction, const std::unordered_map<std::string, LiveRange>& var_ranges) : _avail_pregisters{n}, _instructions{tac_nodes}, _live_ranges{ranges}, _live_info_at_instruction{live_info_at_instruction}, _var_live_ranges{var_ranges} {};
 
     void allocate() {
         std::cout << "debug line 25" << std::endl; 
@@ -41,6 +41,19 @@ public:
                 if (cur_temp_range.end <= i) {
                     _temp_state[active_temp] = TempState::DEAD;
                     it = _active_temps_in_window.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+
+            // remove dead variables from active var set
+            for (auto it = _active_vars_in_window.begin(); it != _active_vars_in_window.end(); ) {
+                std::string active_var = *it;
+                LiveRange cur_temp_range = _var_live_ranges.at(active_var);
+                
+                if (cur_temp_range.end <= i) {
+                    _var_state[active_var] = TempState::DEAD;
+                    it = _active_vars_in_window.erase(it);
                 } else {
                     ++it;
                 }
@@ -79,6 +92,26 @@ public:
                     // saving the iterator and not just temp 'after' bc have to confirm that 'after' wasn't a duplicate and does indeed need to be placed in a register
                     auto it = _active_temps_in_window.insert(after);
                     if (it.second) inserted_it = it.first;
+                }
+            }
+
+            // add live vars from liveness
+            for (const auto& after_var : _live_info_at_instruction[i].live_var_after) {
+                bool needs_register = false; 
+                switch (_var_state[after_var]) {
+                    case TempState::IN_MEMORY:
+                        if (is_var_used_at_instruction(_instructions[i].get(),after_var)) {
+                            needs_register = true;
+                            _var_state[after_var] = TempState::IN_REGISTER;
+                        }
+                        break;
+                    default:
+                        needs_register = true; 
+                        _var_state[after_var] = TempState::IN_REGISTER;
+                        break; 
+                }
+                if (needs_register) {
+                    _active_vars_in_window.insert(after_var); // doesn't mean all variables. It means variables that need to be used in this instruction, so space has to be allocated 
                 }
             }
             std::cout << "debug line 74" << std::endl; 
@@ -122,7 +155,7 @@ public:
             // check if more actives than physical register available. if yes, must swap values in registers and spill
             // TODO: find a way to save that a spill occured here
             // example: if there are 3 temps looking for registers and two physical registers available, 1 temp has to be spilled to memory. 
-            if (_active_temps_in_window.size() > _avail_pregisters) {
+            if (_active_temps_in_window.size() + _active_vars_in_window.size() > _avail_pregisters) {
                 /* 
                     the logic in this conditional only runs if 
                     there are more temps that need registers than 
@@ -178,7 +211,13 @@ private:
     int _avail_pregisters; // this is the # of physical registers available, but also the size of the sliding window in the linear scan algorithm
     int _memory_offset = 0; // will be used in instruction selection
     std::set<int> _active_temps_in_window; // if size of this > _avail_pregisters then spill
-    // std::vector<int> _allocation_table{-1,-1}; 
+    
+    // added data structures for variables
+    std::set<std::string> _active_vars_in_window; 
+    const std::unordered_map<std::string, LiveRange>& _var_live_ranges; 
+
+
+
     
     const std::vector<std::unique_ptr<TACNode>>& _instructions; 
     const std::unordered_map<int, LiveRange>& _live_ranges; 
@@ -191,6 +230,7 @@ private:
     };
 
     std::unordered_map<int, TempState> _temp_state; 
+    std::unordered_map<std::string, TempState> _var_state; 
     
     bool is_used_at_instruction(TACNode* instr, int temp) {
         if (auto* tac_binary = dynamic_cast<TACBinaryOp*>(instr)) {
@@ -207,6 +247,13 @@ private:
             return tac_store->_temporary.identifer == temp; 
         }
         
+        return false; 
+    }
+
+    bool is_var_used_at_instruction(TACNode* instr, const std::string& var) {
+        if (auto* tac_load = dynamic_cast<TACLoad*>(instr)) {
+            return tac_load->_var.varname == var; 
+        }
         return false; 
     }
 };
