@@ -7,7 +7,45 @@ I hope that this tutorial is helpful.
 All files this tutorial refers to will be in the ~/toy-gpu-compiler-frontend/ directory.
 
 ## Converting the AST nodes to Three-Address Code
-The first part of this tutorial is converting AST nodes to lines of TAC. By virtue of the lack of control flow in my language, 
+The first part of this tutorial is converting AST nodes to lines of TAC. Due to the lack of control flow in the DSL, the phi functions necessary for true static single assignment (SSA) are not necessary in making the intermediate representation (IR) of this language SSA compliant.
+
+The first step is to create classes for each of the TAC formats/derived classes. All the code mentioned for this step will be in ```tac_nodes.hpp```. The base class is ```TACNode```, and only contains the default constructor, ```virtual``` destructor, and a ```to_string()``` class method. The base class destructor should almost always be declared virtual to ensure proper cleaup of resources when deleting a derived class oject through a base class pointer. Now that the base class exists, derived classes can inherit the base class. When reasoning about what types of TACs should be derived from TACNode, it is easiest to look at the AST node classes. Most of the AST nodes require a match to a TACNode, such that crucial language information derived and stored in the AST won't be lost when translating to the TAC. For that reason, in this implementation there are four derived classes: ```TACConstant``` corresponds with ```Integer```, ```TACBinaryOp``` corresponds with ```ArithmeticExpression```, ```TACStore``` corresponds with ```AssignmentExpression```, and ```TACLoad``` corresponds with ```Variable```. The contents of the classes themselves are pretty barebones, with a constructor using a initializer list and a implementation for the ```to_string()``` class method. 
+
+The second step is actually converting the AST nodes to TAC. All the code for this step will be in ```ast.hpp```. Starting with the base class ```Expression```, new data structures and variables have to be defined to keep track of the parts for the TAC. An integer ```int temp_counter = 0``` keeps track of the number of temporaries in the the code. Using a counter also makes it easy to name future temporaries as well. 
+```
+static inline std::vector<std::unique_ptr<TACNode>> tac_nodes;
+```
+stores the ```TACNode``` instances in a vector. Another useful data structure implemented in this project is 
+```
+static inline std::unordered_map<std::string, int> expr_to_temp;
+```
+which stores assigned values to remove redundancy. The use for ```expr_to_temp``` is as follows: 
+1. check if ```expr_to_temp.find(key)``` returns a value or past-the-end iterator.
+2. If the value already exists, assign the variable ```temp_id = it->second``` and return. This means that the current node being evaluated has the same value as a previous temp, so the node's ```temp_id``` variable stores the value.
+
+The above described data structures and variable are all declared static because they belong to the class itself, not the instances. It allows for those values to exist for the lifetime of the program, which is necessary for counters and data structures storing outputs from multiple instances of the derived nodes from the AST. 
+
+Moving on, the most important method in the classes like ```Integer``` and ```ArithmeticExpression``` is the ```void three_address_code()``` method, which as the name suggests, generates the appropriate ```TACNode``` for that AST node. Generally, the methods:
+1. Check if the value of the AST already exists as a temp.
+2. Either assign an exisiting temp number to the ```temp_id``` variable or create a new temp with ```Expression::new_temp()```
+3. If creating a new temp, make a ```unique_ptr``` of the corresponding derived class of ```TACNode``` with the necessary arguments, and add the new TAC node to the vector storing results.
+4. Add a new entry in the ```expr_to_temp``` map for the current expression's key and ```temp_id```.
+
+For more specific implementation details, check out the ```ast.hpp``` file, and look at the overrided method implementations for ```three_address_code()```. 
+
+## Performing Liveness Analysis on TAC Nodes
+Performing liveness analysis is a crucial step in compilers because it gathers information necessary to conduct register allocation. Register allocation will be explained in further detail in the next section. Liveness analysis is the step of a compiler where the lifetimes of all temporaries are determined. A lifetime/live range of a variable (when I say variable here I mean it in the most vague way) means that a variable v is live at point p if it has been defined along a path from the procedure's entry to p and there exist a path from p to a use of v along which v is not redefined. Knowing live ranges of variables allows the register allocation algorithm to determine which temporaries (temporaries are the temporary variables the TAC generates per line) to remove from the set of temporaries and add to the set. This is important because the algorithm (and compiler in general) is often allocating many temporaries to a a few registers, and the algorithm prioritizes preventing register spills. 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
