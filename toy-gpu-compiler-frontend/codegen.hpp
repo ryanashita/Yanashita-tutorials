@@ -25,6 +25,20 @@ public:
     }
 };
 
+class VariableAllocator {
+    std::unordered_map<std::string, int> var_to_address; 
+    int next_offset = 0; 
+public: 
+    int get_address(const std::string& ssa_var) {
+        std::string base = ssa_var.substr(0,1);
+        if (var_to_address.find(base) == var_to_address.end()) {
+            var_to_address[base] = next_offset;
+            next_offset += 4;
+        }
+        return var_to_address[base]; 
+    }
+};
+
 class PTXGenerator {
     std::stringstream _output; 
     GlobalScope _scope;

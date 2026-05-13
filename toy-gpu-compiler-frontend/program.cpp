@@ -69,13 +69,14 @@ int main(int argc, char* argv[]) {
             for (auto& [key,value] : la.temp_to_live_range) {
                 std::cout << key << " - " << value.start << ":" << value.end << std::endl; 
             }
+            int live_temp_count = 0; 
             for (auto& instr_live : la.instruction_liveness) {
-                std::cout << "Live before: [";
+                std::cout << live_temp_count << ". Live before: [";
                 for (auto& before : instr_live.live_before) {
                     std::cout << before << ",";
                 }
-                std::cout << "]" << std::endl;
-                std::cout << "Live after: [";
+                std::cout << "]";
+                std::cout << " Live after: [";
                 for (auto& after : instr_live.live_after) {
                     std::cout << after << ",";
                 }
@@ -85,13 +86,15 @@ int main(int argc, char* argv[]) {
             for (auto& [key,value] : la.var_to_live_range) {
                 std::cout << key << " - " << value.start << ":" << value.end << std::endl; 
             }
+            int live_var_count= 0; 
             for (auto& instr_live : la.instruction_liveness) {
-                std::cout << "Live before: [";
+                
+                std::cout << live_var_count << ". Live before: [";
                 for (auto& before : instr_live.live_var_before) {
                     std::cout << before << ",";
                 }
-                std::cout << "]" << std::endl;
-                std::cout << "Live after: [";
+                std::cout << "]"; 
+                std::cout << " Live after: [";
                 for (auto& after : instr_live.live_var_after) {
                     std::cout << after << ",";
                 }

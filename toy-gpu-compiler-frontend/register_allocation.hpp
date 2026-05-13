@@ -11,24 +11,18 @@
 // temps, if spilled, are stored in PTX local memory
 struct AllocationTable {
     bool spill_happened;
-    std::unordered_map<int,int> in_register; // register#:temp_number
-    std::unordered_map<int,int> in_memory; // memory offset:temp_number
-};
-
-// user-defined variables are stored in PTX global memory
-struct VariableStorage { //key should be the variable name, excluding the number at the end
-    std::unordered_map<std::string, int> var_to_address;
+    std::unordered_map<int,int> in_register; // registernumber:temp
+    std::unordered_map<int,int> in_memory; // temp_number:memory_offset
 };
 
 class RegisterAllocation {
 public: 
     std::vector<AllocationTable> _allocations; // register allocation & spills for temps
-    std::vector<VariableStorage> _variable_storage; // variable storage
 
     RegisterAllocation(
         int n, 
-        const std::vector<std::unique_ptr<TACNode>>& tac_nodes, 
-        const std::unordered_map<int, LiveRange>& ranges, 
+        const std::vector<std::unique_ptr<TACNode>>& tac_nodes,
+        const std::unordered_map<int, LiveRange>& ranges,
         std::vector<LivenessInfo>& live_info_at_instruction, 
         const std::unordered_map<std::string, LiveRange>& var_ranges) 
             : _avail_pregisters{n}, 
@@ -39,12 +33,6 @@ public:
     {};
 
     void allocate() {
-        // fill in _variable_storage
-        for (auto& [key,value] : _var_live_ranges) {
-            // TODO
-        }
-
-
         size_t i = 0; 
         while (i < _instructions.size()) {
             std::cout << "debug line 34: instruction " << i << std::endl; 
@@ -62,34 +50,19 @@ public:
                 }
             }
 
-            // // remove dead variables from active var set
-            // for (auto it = _active_vars_in_window.begin(); it != _active_vars_in_window.end(); ) {
-            //     std::string active_var = *it;
-            //     LiveRange cur_temp_range = _var_live_ranges.at(active_var);
-                
-            //     if (cur_temp_range.end <= i) {
-            //         _var_state[active_var] = TempState::DEAD;
-            //         it = _active_vars_in_window.erase(it);
-            //     } else {
-            //         ++it;
-            //     }
-            // }
-
             std::cout << "debug line 41" << std::endl; 
             // live_after is important here. add all non-duplicate temps to the current active temporaries (active temps need a register)
             // non-duplicate because a duplicate just means that the temp was live before and still remains alive at this instruction
             // only one temp gets added to the active temp window at a time bc only one temp is created in a line
-            std::set<int>::iterator inserted_it; 
+            std::set<int>::iterator inserted_it = _active_temps_in_window.end(); 
             for (auto& after : _live_info_at_instruction[i].live_after) {
-
                 bool needs_register = false; 
-
                 switch (_temp_state[after]) {
                     case TempState::IN_REGISTER:
                         needs_register = true; 
                         break;
                     case TempState::IN_MEMORY:
-                        // check if this temp 'after' is needed in this instruction    
+                        // check if this temp 'after' is needed in this instruction for a binaryop, load, or a store  
                         std::cout << "check if temp " << after << " is needed in instruction" << i << std::endl; 
                         if (is_used_at_instruction(_instructions[i].get(), after)) {
                             needs_register = true; // triggers a load
@@ -102,36 +75,27 @@ public:
                         needs_register = true;
                         _temp_state[after] = TempState::IN_REGISTER;
                         break;
-         
                 }
                 if (needs_register) {
                     // saving the iterator and not just temp 'after' bc have to confirm that 'after' wasn't a duplicate and does indeed need to be placed in a register
                     auto it = _active_temps_in_window.insert(after);
-                    if (it.second) inserted_it = it.first;
+                    if (it.second) {
+                        inserted_it = it.first;
+                        std::cout << "instruction " << i << " temp to add somewhere: " << *inserted_it << std::endl; 
+                    }
+                
                 }
             }
 
-            // add live vars from liveness
-            // for (const auto& after_var : _live_info_at_instruction[i].live_var_after) {
-            //     bool needs_register = false; 
-            //     switch (_var_state[after_var]) {
-            //         case TempState::IN_MEMORY:
-            //             if (is_var_used_at_instruction(_instructions[i].get(),after_var)) {
-            //                 needs_register = true;
-            //                 _var_state[after_var] = TempState::IN_REGISTER;
-            //             }
-            //             break;
-            //         default:
-            //             needs_register = true; 
-            //             _var_state[after_var] = TempState::IN_REGISTER;
-            //             break; 
-            //     }
-            //     if (needs_register) {
-            //         _active_vars_in_window.insert(after_var); // doesn't mean all variables. It means variables that need to be used in this instruction, so space has to be allocated 
-            //     }
-            // }
-            std::cout << "debug line 74" << std::endl; 
+            std::cout << "instruction " << i << " active temps: ["; 
+            for (auto& at : _active_temps_in_window) {
+                std::cout << at << ",";
+            }
+            std::cout << "]" << std::endl; 
 
+
+            std::cout << "debug line 74" << std::endl; 
+            // declare data structures for new allocation table
             std::unordered_map<int,int> i_instruction_registers;
             std::unordered_map<int,int> i_instruction_memory;
 
@@ -147,24 +111,33 @@ public:
                 ++i;
                 continue;
             }
-            std::cout << "debug line 91" << std::endl; 
-            // the rest of the logic in the function is for instructions i > 0. 
 
+            std::cout << "debug line 91" << std::endl; 
+
+            // the rest of the logic in the function is for instructions i > 0. 
+            
             // only add values from registers if they are still live
             AllocationTable prev_alloca = _allocations[i-1];
             std::cout << "debug line 94" << std::endl;
-            for (auto& [key,value] : prev_alloca.in_register) {
-                if (_temp_state[value] != TempState::DEAD) {
-                     i_instruction_registers[key] = value; 
+            for (auto& [reg,temp] : prev_alloca.in_register) {
+                if (_temp_state[temp] != TempState::DEAD) {
+                     i_instruction_registers[reg] = temp; 
                 }
             }
 
             // only add values from memory if they are still live
-            // for (auto& [offset,temp] : prev_alloca.in_memory) {
-            //     if (_temp_state[temp] != TempState::DEAD) {
-            //          i_instruction_memory[offset] = temp; 
-            //     }
-            // }
+            for (auto& [offset,temp] : prev_alloca.in_memory) {
+                if (_temp_state[temp] != TempState::DEAD) {
+                     i_instruction_memory[offset] = temp; 
+                }
+            }
+
+            // if tac node is a store, just store TODO check logic on this
+            if (auto* tac_store = dynamic_cast<TACStore*>(_instructions[i].get())) {
+                TACVariable var = tac_store->_dest_variable;
+                Temp temp = tac_store->_temporary; 
+
+            }   
 
             std::cout << "debug line 100" << std::endl; 
 
@@ -172,6 +145,7 @@ public:
             // TODO: find a way to save that a spill occured here
             // example: if there are 3 temps looking for registers and two physical registers available, 1 temp has to be spilled to memory. 
             if (_active_temps_in_window.size() > _avail_pregisters) {
+                std::cout << "line 144 more active temps than avail registers" << std::endl; 
                 /* 
                     the logic in this conditional only runs if 
                     there are more temps that need registers than 
@@ -184,23 +158,27 @@ public:
                 // check if r1 or r2 temp lives longer
                 int longest_living_temp = -1; 
                 int reg_being_modified; 
-                for (auto& [key,value] : prev_alloca.in_register) {
-                    if (_live_ranges.at(value).end > longest_living_temp) {
-                        longest_living_temp = value; 
-                        reg_being_modified = key;
+                for (auto& [reg,temp] : prev_alloca.in_register) {
+                    if (_live_ranges.at(temp).end > longest_living_temp) {
+                        longest_living_temp = temp; 
+                        reg_being_modified = reg;
                     }
                 }
 
                 // save to memory 
-                i_instruction_memory[_memory_offset] = longest_living_temp;
+                i_instruction_memory[_temp_memory_offset] = longest_living_temp;
                 _temp_state[longest_living_temp] = TempState::IN_MEMORY;
-                ++_memory_offset;
+                ++_temp_memory_offset;
                 // remove spilled temp from active temps needing registers
                 _active_temps_in_window.erase(longest_living_temp);
         
                 // change the temp at the register that should be modified, to the inserted
                 i_instruction_registers = prev_alloca.in_register;
-                i_instruction_registers[reg_being_modified] = *inserted_it;
+
+                if (inserted_it != _active_temps_in_window.end()) {
+                    i_instruction_registers[reg_being_modified] = *inserted_it;
+                }
+                
 
                 // i_instruction_registers.assign(prev_alloca.in_register.begin(), prev_alloca.in_register.end());
                 // auto it = find(i_instruction_registers.begin(), i_instruction_registers.end(), longest_living_temp);
@@ -209,29 +187,40 @@ public:
                 // create the allocation table for this instruction i
                 _allocations.push_back(AllocationTable{.spill_happened = true,.in_register = i_instruction_registers, .in_memory = i_instruction_memory});
             } else {
+                std::cout << "line 186 less active temps than avail registers" << std::endl; 
                 // simply add to instruction registers and memory
-                AllocationTable prev_alloca = _allocations[i-1]; 
-
                 for (size_t k = 0; k < _avail_pregisters; ++k) {
-                    if (prev_alloca.in_register.find(k) == prev_alloca.in_register.end()) {
-                        prev_alloca.in_register[k] = *inserted_it;
+                    std::cout << "line 189 for loop " << std::endl; 
+                    if (i_instruction_registers.find(k) == i_instruction_registers.end() && inserted_it != _active_temps_in_window.end()) {
+                        i_instruction_registers[k] = *inserted_it;
+                        std::cout << "line 191 can't find register k in " << std::endl; 
+                        break; 
+                    // if the register exists/ is populated but the value inside the register is dead, insert *inserted_it into that register
+                    // } else if (prev_alloca.in_register.find(k) != prev_alloca.in_register.end() && )
                     }
                 }
-                _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = prev_alloca.in_register, .in_memory = prev_alloca.in_memory}); 
+                _allocations.push_back(AllocationTable{.spill_happened = false,.in_register = i_instruction_registers, .in_memory = prev_alloca.in_memory}); 
             }
+            std::cout << "Allocation Table - registers{";
+            for (auto& [r,t] : _allocations[i].in_register) {
+                std::cout << r << ":" << t << ",";
+            }
+            std::cout << "}" << std::endl;
             ++i;
         }
     }
 
 private:
     int _avail_pregisters; // this is the # of physical registers available, but also the size of the sliding window in the linear scan algorithm
-    int _memory_offset = 0; // will be used in instruction selection
+    int _temp_memory_offset = 0; // will be used in instruction selection
     std::set<int> _active_temps_in_window; // if size of this > _avail_pregisters then spill
     
-    // added data structures for variables
-    std::set<std::string> _active_vars_in_window; 
+    // // added data structures for variables
+    // std::set<std::string> _active_vars_in_window; 
     const std::unordered_map<std::string, LiveRange>& _var_live_ranges; 
+    
 
+    // temp to memory offset
 
 
     
@@ -258,17 +247,11 @@ private:
             };
             return check_operand(tac_binary->_operand1) || check_operand(tac_binary->_operand2); 
         } 
-
         if (auto* tac_store = dynamic_cast<TACStore*>(instr)) {
             return tac_store->_temporary.identifer == temp; 
         }
-        
-        return false; 
-    }
-
-    bool is_var_used_at_instruction(TACNode* instr, const std::string& var) {
         if (auto* tac_load = dynamic_cast<TACLoad*>(instr)) {
-            return tac_load->_var.varname == var; 
+            return tac_load->_dest_temp.identifer == temp; 
         }
         return false; 
     }
